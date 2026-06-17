@@ -829,11 +829,15 @@ function renderPage(pageIdx, direction) {
     if (!sq.branching || !sq.branches) return;
     const srcPage = PAGES.findIndex(p => p.questions.some(pq => pq.id === sq.id));
     Object.entries(sq.branches).forEach(([val, targetId]) => {
-      if (!targetId || targetId === 'next' || targetId === 'end' || targetId.startsWith('page:')) return;
-      const tgtPage = PAGES.findIndex(p => p.questions.some(pq => pq.id === targetId));
-      if (tgtPage >= 0 && tgtPage !== srcPage) {
-        (crossPageCond[targetId] = crossPageCond[targetId] || []).push({sourceQId: sq.id, requiredVal: val});
-      }
+      // targetId can be string or array — flatten and skip non-question targets
+      const ids = Array.isArray(targetId) ? targetId : [targetId];
+      ids.forEach(tId => {
+        if (!tId || tId === 'next' || tId === 'end' || tId.startsWith('page:')) return;
+        const tgtPage = PAGES.findIndex(p => p.questions.some(pq => pq.id === tId));
+        if (tgtPage >= 0 && tgtPage !== srcPage) {
+          (crossPageCond[tId] = crossPageCond[tId] || []).push({sourceQId: sq.id, requiredVal: val});
+        }
+      });
     });
   });
 
