@@ -1490,6 +1490,8 @@ function skipBorrowerPages(borrowerNum, fromPageIdx) {
 }
 
 /* ═══ INIT ═══ */
+start();
+</script>
 </body>
 </html>`);
 });

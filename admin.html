@@ -17,7 +17,7 @@
       --red:    #B8624C;
       --sidebar-w: 240px;
     }
-    body { font-family: 'Heebo', sans-serif; background: #f0ede8; color: #1a2830; direction: rtl; min-height: 100vh; }
+    body { font-family: 'Heebo', sans-serif; background: #f0ede8; color: #1a2830; direction: rtl; min-height: 100vh; overflow-x: hidden; }
 
     /* ── LAYOUT ── */
     .layout { display: flex; min-height: 100vh; }
@@ -299,13 +299,29 @@
     .alm-btn-add-field:hover { background:rgba(200,169,110,.08); }
     .alm-actions { display:flex;justify-content:flex-end;gap:10px;margin-top:18px;border-top:1px solid #f0ece6;padding-top:16px; }
 
-    /* submissions table */
-    .sub-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .sub-table th { background: #f7f4ef; padding: 8px 12px; text-align: right; font-weight: 600; color: #6b7e8a; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #e2ddd6; }
-    .sub-table td { padding: 10px 12px; border-bottom: 1px solid #f0ece6; color: #1a2830; vertical-align: top; }
-    .sub-table tr:hover td { background: #faf9f6; }
-    .sub-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 8px; border-radius: 100px; background: rgba(200,169,110,.2); color: var(--dg); font-size: 12px; font-weight: 700; }
+    /* submissions cards */
+    .sub-card { background:#fff;border:1px solid #e8e3dc;border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;transition:box-shadow .15s; }
+    .sub-card:hover { box-shadow:0 2px 12px rgba(28,58,74,.08); }
+    .sub-card-avatar { width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--sand),var(--gold));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--ocean);flex-shrink:0; }
+    .sub-card-body { flex:1;min-width:0; }
+    .sub-card-name { font-size:15px;font-weight:600;color:var(--ocean); }
+    .sub-card-meta { font-size:12px;color:#8a9ba5;margin-top:3px;display:flex;flex-wrap:wrap;gap:12px; }
+    .sub-card-date { font-size:12px;color:#aaa;white-space:nowrap;margin-right:auto; }
+    .sub-badge { display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 8px;border-radius:100px;background:rgba(200,169,110,.2);color:var(--dg);font-size:12px;font-weight:700; }
     .no-subs { text-align: center; padding: 32px; color: #aaa; font-size: 14px; }
+    /* view submission modal */
+    .vsm-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:center;justify-content:center; }
+    .vsm-box { background:#fff;border-radius:14px;width:620px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.25); }
+    .vsm-head { padding:20px 24px 16px;border-bottom:1px solid #f0ece6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0; }
+    .vsm-title { font-size:17px;font-weight:700;color:var(--ocean); }
+    .vsm-close { width:32px;height:32px;border-radius:8px;border:none;background:#f0ede8;color:#666;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+    .vsm-body { overflow-y:auto;flex:1;padding:20px 24px; }
+    .vsm-section { margin-bottom:20px; }
+    .vsm-section-title { font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #f0ece6; }
+    .vsm-row { display:flex;gap:12px;padding:7px 0;border-bottom:1px solid #faf9f6; }
+    .vsm-label { font-size:12px;color:#8a9ba5;width:200px;flex-shrink:0; }
+    .vsm-val { font-size:13px;color:#1a2830;flex:1;word-break:break-word; }
+    .vsm-foot { padding:16px 24px;border-top:1px solid #f0ece6;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0; }
 
     /* ── EMAIL SEND FEATURE ── */
     .send-data-bar {
@@ -1267,11 +1283,11 @@ const SESSION_KEY = 'adminToken';
 
 // apiFetch: drop-in replacement for fetch() that injects the admin token
 async function apiFetch(url, opts = {}) {
-  const token = sessionStorage.getItem(SESSION_KEY) || '';
+  const token = localStorage.getItem(SESSION_KEY) || '';
   opts.headers = { ...(opts.headers || {}), 'X-Admin-Token': token };
   const res = await fetch(url, opts);
   if (res.status === 401) {
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
     showLoginOverlay();
     throw new Error('Session expired — please log in again');
   }
@@ -1295,7 +1311,7 @@ async function doLogin() {
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = '⏳ בודק...';
   try {
-    // Use plain fetch — token not yet in sessionStorage, apiFetch would overwrite it with ''
+    // Use plain fetch — token not yet in localStorage, apiFetch would overwrite it with ''
     const res = await fetch('/api/email-config', {
       headers: { 'X-Admin-Token': token }
     });
@@ -1304,7 +1320,7 @@ async function doLogin() {
       document.getElementById('loginTokenInput').select();
       return;
     }
-    sessionStorage.setItem(SESSION_KEY, token);
+    localStorage.setItem(SESSION_KEY, token);
     hideLoginOverlay();
     loadContent();
     loadForms();
@@ -1324,7 +1340,7 @@ document.getElementById('loginTokenInput').addEventListener('keydown', function(
 
 /* ─── INIT ─── */
 // Show login if no token saved, otherwise boot directly
-if (!sessionStorage.getItem(SESSION_KEY)) {
+if (!localStorage.getItem(SESSION_KEY)) {
   showLoginOverlay();
 } else {
   loadContent();
@@ -1670,40 +1686,40 @@ function renderQuestionsList() {
 }
 
 /* ── submissions viewer ── */
+var _subsSrc = [], _qsSrc = [];
+
+function subCardHtml(s, i, qs) {
+  const ans = s.answers || {};
+  const fname = ans['q_b1_fname'] || ans['q_fname'] || '';
+  const lname = ans['q_b1_lname'] || ans['q_lname'] || '';
+  const name  = [fname, lname].filter(Boolean).join(' ') || 'לווה ללא שם';
+  const initials = name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const phone = ans['q_b1_phone'] || ans['q_phone'] || '';
+  const email = ans['q_b1_email'] || ans['q_email'] || '';
+  const bcount = ans['q_b_count'] || ans['b_count'] || '';
+  const date  = new Date(s.submittedAt).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const meta  = [phone && `📞 ${esc(phone)}`, email && `✉️ ${esc(email)}`, bcount && `${bcount} לווים`].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  return `<div class="sub-card">
+    <div class="sub-card-avatar">${esc(initials)}</div>
+    <div class="sub-card-body">
+      <div class="sub-card-name">${esc(name)}</div>
+      <div class="sub-card-meta">${meta}</div>
+    </div>
+    <div class="sub-card-date">${date}</div>
+    <button class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);flex-shrink:0;" onclick="openViewSub(${i})">צפה</button>
+  </div>`;
+}
+
 async function loadSubmissions() {
   if (!currentForm) return;
   const res  = await apiFetch(`/api/submissions/${currentForm.id}`);
   const data = await res.json();
-  const subs = data.submissions || [];
-  const qs   = data.form?.questions || [];
+  _subsSrc = data.submissions || [];
+  _qsSrc   = (data.form?.questions || []).filter(q => q.type !== 'page_break');
   const wrap = document.getElementById('submissionsContent');
-
-  if (!subs.length) {
-    wrap.innerHTML = `<div class="no-subs">📭 עדיין אין הגשות לטופס זה</div>`;
-    return;
-  }
-
-  // build columns from questions
-  const cols = qs.map(q => `<th>${esc(q.label||q.id)}</th>`).join('');
-  const rows = subs.map(s => {
-    const cells = qs.map(q => {
-      const val = s.answers[`q_${q.id}`];
-      if (!val) return '<td>—</td>';
-      const display = Array.isArray(val) ? val.join(', ') : val;
-      return `<td>${esc(display)}</td>`;
-    }).join('');
-    const date = new Date(s.submittedAt).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    return `<tr><td style="color:#aaa;font-size:12px;white-space:nowrap;">${date}</td>${cells}</tr>`;
-  }).join('');
-
-  wrap.innerHTML = `
-    <div style="overflow-x:auto;">
-      <table class="sub-table">
-        <thead><tr><th>תאריך</th>${cols}</tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    <div style="margin-top:12px;font-size:13px;color:#aaa;text-align:left;">${subs.length} הגשות סה"כ</div>`;
+  if (!_subsSrc.length) { wrap.innerHTML = `<div class="no-subs">📭 עדיין אין הגשות לטופס זה</div>`; return; }
+  wrap.innerHTML = _subsSrc.map((s,i) => subCardHtml(s, i, _qsSrc)).join('') +
+    `<div style="margin-top:8px;font-size:13px;color:#aaa;text-align:left;">${_subsSrc.length} הגשות סה"כ</div>`;
 }
 
 /* ── page break ── */
@@ -1862,63 +1878,108 @@ async function loadDetailSubmissions() {
       return;
     }
 
-    // store for openSendModal access
+    // store for openSendModal / openViewSub access
     _detailSubs = subs;
     _detailQs   = qs;
+    _subsSrc    = subs;
+    _qsSrc      = qs;
 
-    // which questions are marked for sending (set in form editor)
-    const sendQs = qs.filter(q => q.sendData);
-    const hasSendFields = sendQs.length > 0;
-
-    const cols = qs.map(q => {
-      const tag = q.sendData ? ' <span style="font-size:10px;color:var(--green);font-weight:700;" title="מסומן לשליחה">📧</span>' : '';
-      return `<th>${esc(q.label||q.id)}${tag}</th>`;
-    }).join('');
-
-    const rows = subs.map((s,i) => {
-      const date = new Date(s.submittedAt).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      const cells = qs.map(q => {
-        const val = s.answers[`q_${q.id}`];
-        let display = '—';
-        if (val) {
-          if (q.type === 'file') {
-            try {
-              const f = JSON.parse(val);
-              display = `<a href="${esc(f.url)}" target="_blank" style="color:var(--ocean);text-decoration:underline;">📎 ${esc(f.name)}</a>`;
-            } catch { display = esc(val); }
-          } else if (q.type === 'date' && val) {
-            // format YYYY-MM-DD → DD/MM/YYYY
-            const parts = val.split('-');
-            display = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : esc(val);
-          } else {
-            display = Array.isArray(val) ? esc(val.join(', ')) : esc(val);
-          }
-        }
-        return `<td>${display}</td>`;
-      }).join('');
-      const sendBtn = hasSendFields
-        ? `<td style="width:1%;padding:6px 8px;"><button class="btn-send-lead" style="opacity:1;pointer-events:auto;" onclick="openSendModal(${i})">📧 שלח</button></td>`
-        : `<td></td>`;
-      return `<tr><td style="color:#aaa;font-size:12px;white-space:nowrap;">${date}</td>${cells}${sendBtn}</tr>`;
-    }).join('');
-
+    const hasSendFields = qs.some(q => q.sendData);
     const noSendNote = !hasSendFields
       ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(200,169,110,.1);border-radius:6px;font-size:12px;color:#8a7050;">
            💡 סמן שאלות ל"שליחת נתונים" בעורך הטופס כדי לאפשר שליחה ללידים
          </div>` : '';
 
-    wrap.innerHTML = `
-      ${noSendNote}
-      <div style="overflow-x:auto;">
-        <table class="sub-table">
-          <thead><tr><th>תאריך</th>${cols}<th></th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      <div style="margin-top:10px;font-size:13px;color:#aaa;text-align:left;">${subs.length} הגשות סה"כ</div>`;
+    wrap.innerHTML = noSendNote +
+      subs.map((s,i) => subCardHtml(s, i, qs)).join('') +
+      `<div style="margin-top:8px;font-size:13px;color:#aaa;text-align:left;">${subs.length} הגשות סה"כ</div>`;
   } catch(e) {
     wrap.innerHTML = `<div style="color:var(--red);padding:16px;">שגיאה בטעינת הגשות</div>`;
   }
+}
+
+/* ── view submission modal ── */
+function openViewSub(idx) {
+  const s  = _subsSrc[idx];
+  const qs = _qsSrc;
+  if (!s) return;
+
+  const ans  = s.answers || {};
+  const date = new Date(s.submittedAt).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const fname = ans['q_b1_fname'] || ans['q_fname'] || '';
+  const lname = ans['q_b1_lname'] || ans['q_lname'] || '';
+  const name  = [fname, lname].filter(Boolean).join(' ') || 'הגשה';
+
+  const formQs = (_detailQs && _detailQs.length ? _detailQs : qs);
+
+  // group questions into sections by question-id prefix
+  const sectionMap = {
+    'b_count':'כללי', 'guar_exists':'כללי',
+    'b1':'לווה 1', 'b2':'לווה 2', 'b3':'לווה 3', 'b4':'לווה 4',
+    'guar':'ערב', 'ln':'הלוואות קיימות', 'mt':'משכנתאות קיימות'
+  };
+  function sectionFor(id) {
+    if (id === 'b_count' || id === 'guar_exists') return 'כללי';
+    for (const [pre, title] of Object.entries(sectionMap)) {
+      if (id.startsWith(pre + '_') || id === pre) return title;
+    }
+    return 'כללי';
+  }
+  const sectionOrder = ['כללי','לווה 1','לווה 2','לווה 3','לווה 4','ערב','הלוואות קיימות','משכנתאות קיימות'];
+  const sectionBuckets = {};
+  formQs.forEach(q => {
+    const val = ans['q_' + q.id];
+    if (!val && val !== 0) return;
+    let display;
+    if (q.type === 'file') {
+      try { const f = JSON.parse(val); display = `<a href="${esc(f.url)}" target="_blank" style="color:var(--ocean);">📎 ${esc(f.name)}</a>`; }
+      catch { display = esc(val); }
+    } else if (q.type === 'date') {
+      const p = String(val).split('-'); display = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : esc(val);
+    } else {
+      display = Array.isArray(val) ? esc(val.join(', ')) : esc(val);
+    }
+    const sec = sectionFor(q.id);
+    if (!sectionBuckets[sec]) sectionBuckets[sec] = [];
+    sectionBuckets[sec].push({ label: q.label || q.id, display });
+  });
+  const sections = sectionOrder.filter(t => sectionBuckets[t]?.length).map(t => ({ title: t, rows: sectionBuckets[t] }));
+
+  const sectionsHtml = sections.map(sec => {
+    if (!sec.rows.length) return '';
+    return `<div class="vsm-section">
+      <div class="vsm-section-title">${esc(sec.title)}</div>
+      ${sec.rows.map(r => `<div class="vsm-row"><div class="vsm-label">${esc(r.label)}</div><div class="vsm-val">${r.display}</div></div>`).join('')}
+    </div>`;
+  }).join('');
+
+  const hasSend = (_detailQs||qs).some(q => q.sendData);
+  const sendBtn = hasSend
+    ? `<button class="btn" style="background:var(--green);color:#fff;" onclick="closeViewSub();openSendModal(${idx})">📧 שלח ללקוח</button>`
+    : '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'vsm-overlay';
+  overlay.id = 'vsmOverlay';
+  overlay.innerHTML = `
+    <div class="vsm-box">
+      <div class="vsm-head">
+        <div class="vsm-title">${esc(name)} <span style="font-size:13px;font-weight:400;color:#aaa;margin-right:8px;">${date}</span></div>
+        <button class="vsm-close" onclick="closeViewSub()">×</button>
+      </div>
+      <div class="vsm-body">${sectionsHtml || '<div style="color:#aaa;padding:20px;text-align:center;">אין נתונים להצגה</div>'}</div>
+      <div class="vsm-foot">
+        ${sendBtn}
+        <button class="btn" style="background:#f0ede8;color:#555;" onclick="closeViewSub()">סגור</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeViewSub(); });
+  document.body.appendChild(overlay);
+}
+
+function closeViewSub() {
+  const el = document.getElementById('vsmOverlay');
+  if (el) el.remove();
 }
 
 function syncDetailTitle(val) {
