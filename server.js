@@ -1096,11 +1096,13 @@ function goNextPage(pageIdx) {
   // Check if we're about to enter a borrower N (N>=2) page and no choice made yet
   var nextPageObj = PAGES[nextPage];
   if (nextPageObj && !SUB_TOKEN) {
-    var titleMatch = nextPageObj.title ? nextPageObj.title.match(/לווה (\d) — פרטים אישיים/) : null;
+    var pageTitle = nextPageObj.title || '';
+    // match any borrower N personal-info page: "לווה 2 — פרטים אישיים" (any dash variant)
+    var titleMatch = pageTitle.match(/לווה\s+(\d)\s*.{1,3}פרטים\s+אישיים/);
     if (titleMatch) {
       var bn = parseInt(titleMatch[1], 10);
       if (bn >= 2 && !shareChoiceMade[bn]) {
-        pageHistory.pop(); // undo the push — interstitial manages navigation
+        pageHistory.pop();
         showShareInterstitial(bn, nextPage);
         return;
       }
