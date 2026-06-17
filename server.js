@@ -724,32 +724,36 @@ function updateDots() {
    on the SAME page — these start hidden and reveal on selection.
 ════════════════════════════════════ */
 function getPageInternalTargets(pageQs) {
-  // map: targetId → [sourceQId, ...]
+  // map: targetId → [sourceQId, ...]  (branch values can be string or string[])
   const targetMap = {};
   const pageIds = new Set(pageQs.map(q => q.id));
   pageQs.forEach(q => {
     if (!q.branching || !q.branches) return;
-    Object.values(q.branches).forEach(tId => {
-      if (tId && tId !== 'next' && tId !== 'end' && pageIds.has(tId)) {
-        if (!targetMap[tId]) targetMap[tId] = [];
-        targetMap[tId].push(q.id);
-      }
+    Object.values(q.branches).forEach(raw => {
+      const ids = Array.isArray(raw) ? raw : [raw];
+      ids.forEach(tId => {
+        if (tId && tId !== 'next' && tId !== 'end' && !tId.startsWith('page:') && pageIds.has(tId)) {
+          if (!targetMap[tId]) targetMap[tId] = [];
+          targetMap[tId].push(q.id);
+        }
+      });
     });
   });
   return targetMap; // { targetQId: [sourceQIds] }
 }
 
 function applyInitialVisibility(pageQs, targetMap) {
-  // For each question that is an internal branch target, decide visibility
   Object.keys(targetMap).forEach(tId => {
     const sources = targetMap[tId];
-    // Check if any source currently has the answer that triggers this target
     const shouldShow = sources.some(srcId => {
       const srcQ = qById[srcId];
       const ans = answers['q_'+srcId];
       if (!srcQ || !ans) return false;
       const selected = Array.isArray(ans) ? ans : [ans];
-      return selected.some(s => srcQ.branches[s] === tId);
+      return selected.some(s => {
+        const t = srcQ.branches[s];
+        return Array.isArray(t) ? t.includes(tId) : t === tId;
+      });
     });
     const el = document.querySelector(\`[data-branch-target="\${tId}"]\`);
     if (el) el.style.display = shouldShow ? '' : 'none';
@@ -761,24 +765,26 @@ function updateIntraPageBranches(srcQId, selectedVal, pageQs) {
   if (!q || !q.branching || !q.branches) return;
   const pageIds = new Set(pageQs.map(pq => pq.id));
 
-  // collect all targets of this source that are on this page (skip page:N jumps)
-  const allTargets = Object.values(q.branches).filter(t => t && t !== 'next' && t !== 'end' && !t.startsWith('page:') && pageIds.has(t));
+  // collect ALL targets across all branch options (flatten arrays)
+  const allTargets = Object.values(q.branches).flatMap(t => Array.isArray(t) ? t : [t])
+    .filter(t => t && t !== 'next' && t !== 'end' && !t.startsWith('page:') && pageIds.has(t));
 
   // hide all first
   allTargets.forEach(tId => {
     const el = document.querySelector(\`[data-branch-target="\${tId}"]\`);
-    if (el) {
-      el.style.display = 'none';
-      // clear saved answer for hidden question
-      delete answers['q_'+tId];
-    }
+    if (el) { el.style.display = 'none'; delete answers['q_'+tId]; }
   });
 
-  // show the one that matches selectedVal
+  // show the targets matching selectedVal (can be string or array)
   const target = q.branches[selectedVal];
-  if (target && target !== 'next' && target !== 'end' && !target.startsWith('page:') && pageIds.has(target)) {
-    const el = document.querySelector(\`[data-branch-target="\${target}"]\`);
-    if (el) el.style.display = '';
+  if (target) {
+    const targets = Array.isArray(target) ? target : [target];
+    targets.forEach(tId => {
+      if (tId && tId !== 'next' && tId !== 'end' && !tId.startsWith('page:') && pageIds.has(tId)) {
+        const el = document.querySelector(\`[data-branch-target="\${tId}"]\`);
+        if (el) el.style.display = '';
+      }
+    });
   }
 }
 
@@ -978,6 +984,8 @@ function getBranchTargetPage(q, answerVal) {
   const target = q.branches[answerVal];
   if (!target || target === 'next') return null;
   if (target === 'end') return 'END';
+  // Array targets are intra-page only — not a page jump
+  if (Array.isArray(target)) return null;
   // page:N  →  jump directly to page N (1-indexed in editor, 0-indexed here)
   if (target.startsWith('page:')) {
     const pg = parseInt(target.split(':')[1], 10) - 1;
