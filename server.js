@@ -79,7 +79,7 @@ const SubSession = mongoose.model('SubSession', SubSessionSchema);
 /* ── helpers ── */
 function genId() { return crypto.randomBytes(4).toString('hex'); }
 
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+try { if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR); } catch(e) { console.warn('uploads dir not writable (serverless env)'); }
 
 // FIX: derive extension from MIME type, never from user-supplied filename
 const PHOTO_MIME_EXT = {
@@ -1583,4 +1583,9 @@ app.post('/api/send-lead', adminLimiter, requireAdmin, express.json(), async (re
   }
 });
 
-app.listen(PORT, () => console.log(`✓  http://localhost:${PORT}  |  admin: http://localhost:${PORT}/admin.html`));
+// Local dev: listen on port. Vercel: export the app.
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`✓  http://localhost:${PORT}  |  admin: http://localhost:${PORT}/admin.html`));
+}
+
+module.exports = app;
