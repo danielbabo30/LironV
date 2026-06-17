@@ -1097,15 +1097,14 @@ function goNextPage(pageIdx) {
   var nextPageObj = PAGES[nextPage];
   if (nextPageObj && !SUB_TOKEN) {
     var pageTitle = nextPageObj.title || '';
-    // match any borrower N personal-info page: "לווה 2 — פרטים אישיים" (any dash variant)
-    var titleMatch = pageTitle.match(/לווה\s+(\d)\s*.{1,3}פרטים\s+אישיים/);
-    if (titleMatch) {
-      var bn = parseInt(titleMatch[1], 10);
-      if (bn >= 2 && !shareChoiceMade[bn]) {
-        pageHistory.pop();
-        showShareInterstitial(bn, nextPage);
-        return;
-      }
+    var borrowerNum = 0;
+    if (pageTitle.indexOf('לווה 2') !== -1 && pageTitle.indexOf('פרטים') !== -1) borrowerNum = 2;
+    else if (pageTitle.indexOf('לווה 3') !== -1 && pageTitle.indexOf('פרטים') !== -1) borrowerNum = 3;
+    else if (pageTitle.indexOf('לווה 4') !== -1 && pageTitle.indexOf('פרטים') !== -1) borrowerNum = 4;
+    if (borrowerNum >= 2 && !shareChoiceMade[borrowerNum]) {
+      pageHistory.pop();
+      showShareInterstitial(borrowerNum, nextPage);
+      return;
     }
   }
 
