@@ -405,8 +405,11 @@
 
 <script>
 async function init() {
-  const res = await fetch('/api/content');
-  const C = await res.json();
+  let C = {};
+  try {
+    const res = await fetch('/api/content');
+    if (res.ok) C = await res.json();
+  } catch(e) {}
   render(C);
   document.body.classList.remove('loading');
   document.body.classList.add('ready');
@@ -417,6 +420,16 @@ async function init() {
 function t(s) { return String(s || ''); }
 
 function render(C) {
+  if (!C || typeof C !== 'object') C = {};
+  C.nav = C.nav || {};
+  C.hero = C.hero || {};
+  C.painSolution = C.painSolution || {};
+  C.process = C.process || {};
+  C.specialties = C.specialties || {};
+  C.about = C.about || {};
+  C.testimonials = C.testimonials || {};
+  C.cta = C.cta || {};
+  C.footer = C.footer || {};
   /* NAV */
   document.getElementById('navLogo').innerHTML = `${t(C.nav.logoText)} <span>${t(C.nav.logoAccent)}</span>`;
   document.getElementById('navCta').textContent = t(C.nav.ctaText);

@@ -171,19 +171,26 @@ app.get(SENSITIVE, (req, res) => res.status(403).end());
 
 app.get('/api/content', async (req, res) => {  // public read — site branding only
   try {
+    connectMongo();
     const doc = await Content.findById('main').lean();
     if (!doc) {
       // seed from file if DB is empty and file exists
-      const file = path.join(__dirname, 'content.json');
-      if (fs.existsSync(file)) {
-        const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-        await Content.create({ _id: 'main', data });
-        return res.json(data);
-      }
+      try {
+        const file = path.join(__dirname, 'content.json');
+        if (fs.existsSync(file)) {
+          const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+          try { await Content.create({ _id: 'main', data }); } catch {}
+          return res.json(data);
+        }
+      } catch {}
       return res.json({});
     }
     res.json(doc.data);
-  } catch (e) { console.error("[API]", e.message); res.status(500).json({ ok: false, error: "Internal server error" }); }
+  } catch (e) {
+    console.error("[api/content]", e.message);
+    // return empty object so client doesn't crash — client must handle missing fields
+    res.json({});
+  }
 });
 
 app.post('/api/content', adminLimiter, requireAdmin, async (req, res) => {
