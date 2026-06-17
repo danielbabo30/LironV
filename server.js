@@ -1262,7 +1262,7 @@ async function submitAllPages() {
   }
 
   if (!collectPageAnswers(currentPage)) return;
-  const btn = document.querySelector('.btn-submit-final');
+  var btn = document.querySelector('.btn-submit-final');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ שולח...'; }
   document.getElementById('progressBar').style.width = '100%';
   PAGES.forEach((_, i) => {
