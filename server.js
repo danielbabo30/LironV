@@ -670,11 +670,11 @@ app.get('/form/:id', async (req, res) => {
   </div>
 
 <script>
-const PAGES   = ${pagesJson};     // [{ title, questions:[...], showCondition }]
-const ALL_QS  = ${questionsJson}; // flat list (no page_breaks)
-const FORM_ID = '${form.id}';
+var PAGES   = ${pagesJson};     // [{ title, questions:[...], showCondition }]
+var ALL_QS  = ${questionsJson}; // flat list (no page_breaks)
+var FORM_ID = '${form.id}';
 // PAGE_CONDITIONS[i] = { qId, vals } — skip page i if answers[qId] not in vals
-const PAGE_CONDITIONS = PAGES.map(p => p.showCondition || null);
+var PAGE_CONDITIONS = PAGES.map(p => p.showCondition || null);
 const LEAD_ID = new URLSearchParams(window.location.search).get('leadId') || '';
 const answers = {};
 
@@ -1093,18 +1093,16 @@ function goNextPage(pageIdx) {
   if (nextPage >= PAGES.length) { showReviewScreen(); return; }
   pageHistory.push(nextPage);
 
-  // Check if we're about to enter a borrower N (N>=2) page and no choice made yet
-  var nextPageObj = PAGES[nextPage];
-  if (nextPageObj && !SUB_TOKEN) {
-    var pageTitle = nextPageObj.title || '';
-    var borrowerNum = 0;
-    if (pageTitle.indexOf('לווה 2') !== -1 && pageTitle.indexOf('פרטים') !== -1) borrowerNum = 2;
-    else if (pageTitle.indexOf('לווה 3') !== -1 && pageTitle.indexOf('פרטים') !== -1) borrowerNum = 3;
-    else if (pageTitle.indexOf('לווה 4') !== -1 && pageTitle.indexOf('פרטים') !== -1) borrowerNum = 4;
-    if (borrowerNum >= 2 && !shareChoiceMade[borrowerNum]) {
-      pageHistory.pop();
-      showShareInterstitial(borrowerNum, nextPage);
-      return;
+  // After page 0 (b_count selection): offer share links for all extra borrowers at once
+  if (pageIdx === 0 && !SUB_TOKEN) {
+    var bCount = parseInt(answers['q_b_count'] || answers['b_count'] || '1', 10);
+    // find first borrower N >= 2 that hasn't had a choice yet
+    for (var bn = 2; bn <= bCount; bn++) {
+      if (!shareChoiceMade[bn]) {
+        pageHistory.pop();
+        showShareInterstitial(bn, nextPage);
+        return;
+      }
     }
   }
 
@@ -1424,15 +1422,28 @@ function showShareInterstitial(borrowerNum, targetPageIdx) {
       <div id="share-link-area-\${borrowerNum}" style="display:none;margin-top:8px"></div>
       <div class="step-nav" style="margin-top:24px">
         <button class="btn-back" onclick="goBack()">→ חזרה</button>
-        <button class="btn-next" id="share-continue-\${borrowerNum}" style="display:none" onclick="skipBorrowerPages(\${borrowerNum},\${targetPageIdx})">המשך לשאר השאלות ←</button>
+        <button class="btn-next" id="share-continue-\${borrowerNum}" style="display:none" onclick="nextShareOrContinue(\${borrowerNum},\${targetPageIdx})">המשך ←</button>
       </div>
     </div>\`;
 }
 
-async function chooseLocalFill(borrowerNum, targetPageIdx) {
-  shareChoiceMade[borrowerNum] = 'local';
+function nextShareOrContinue(borrowerNum, targetPageIdx) {
+  // check if there's another borrower to offer share to
+  var bCount = parseInt(answers['q_b_count'] || answers['b_count'] || '1', 10);
+  for (var bn = borrowerNum + 1; bn <= bCount; bn++) {
+    if (!shareChoiceMade[bn]) {
+      showShareInterstitial(bn, targetPageIdx);
+      return;
+    }
+  }
+  // all borrowers decided — continue to main flow
   pageHistory.push(targetPageIdx);
   renderPage(targetPageIdx);
+}
+
+async function chooseLocalFill(borrowerNum, targetPageIdx) {
+  shareChoiceMade[borrowerNum] = 'local';
+  nextShareOrContinue(borrowerNum, targetPageIdx);
 }
 
 async function chooseShareLink(borrowerNum, targetPageIdx, btn) {
