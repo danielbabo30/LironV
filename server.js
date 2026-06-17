@@ -1073,11 +1073,14 @@ function onCheckboxChange(qId, pageIdx) {
   if (!q || !q.branching || !q.branches) return;
   const pageIds = new Set(pageQs.map(pq => pq.id));
   Object.entries(q.branches).forEach(([optVal, tId]) => {
-    if (!tId || tId === 'next' || tId === 'end' || tId.startsWith('page:') || !pageIds.has(tId)) return;
-    if (!checked.includes(optVal)) {
-      const el = document.querySelector(\`[data-branch-target="\${tId}"]\`);
-      if (el) { el.style.display = 'none'; delete answers['q_'+tId]; }
-    }
+    const ids = Array.isArray(tId) ? tId : [tId];
+    ids.forEach(id => {
+      if (!id || id === 'next' || id === 'end' || id.startsWith('page:') || !pageIds.has(id)) return;
+      if (!checked.includes(optVal)) {
+        const el = document.querySelector(\`[data-branch-target="\${id}"]\`);
+        if (el) { el.style.display = 'none'; delete answers['q_'+id]; }
+      }
+    });
   });
 }
 
