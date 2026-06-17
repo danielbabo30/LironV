@@ -1042,7 +1042,11 @@ function onRadioChange(qId, val, pageIdx, hasBranching) {
   const pageQs = PAGES[pageIdx].questions;
   updateIntraPageBranches(qId, val, pageQs);
 
-  // cross-page navigation is handled by goNextPage when user presses "הבא"
+  // Auto-advance: if this page has only this one radio question, advance automatically
+  const visibleQs = pageQs.filter(q => q.type !== 'page_break');
+  if (visibleQs.length === 1 && visibleQs[0].id === qId) {
+    setTimeout(() => goNextPage(pageIdx), 350);
+  }
 }
 
 /* ═══ CHECKBOX CHANGE — handle within-page branching ═══ */
