@@ -1,0 +1,2666 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול תוכן | לירון</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ocean:  #1C3A4A;
+      --gold:   #C8A96E;
+      --dg:     #A07840;
+      --cream:  #F5F1EB;
+      --sand:   #E8DDD0;
+      --green:  #2E5D4B;
+      --red:    #B8624C;
+      --sidebar-w: 240px;
+    }
+    body { font-family: 'Heebo', sans-serif; background: #f0ede8; color: #1a2830; direction: rtl; min-height: 100vh; }
+
+    /* ── LAYOUT ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--ocean);
+      position: fixed; top: 0; right: 0; bottom: 0;
+      display: flex; flex-direction: column;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 24px 20px 16px;
+      font-size: 17px; font-weight: 700;
+      color: var(--cream);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-logo span { color: var(--gold); }
+    .sidebar-sub { font-size: 11px; font-weight: 400; color: rgba(245,241,235,.45); margin-top: 2px; }
+    .nav-section { padding: 16px 0 4px 12px; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(245,241,235,.3); }
+    .sidebar-nav { list-style: none; padding: 0 8px; }
+    .sidebar-nav li { margin-bottom: 2px; }
+    .sidebar-nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: 14px; font-weight: 500; color: rgba(245,241,235,.7);
+      cursor: pointer; text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .sidebar-nav a:hover { background: rgba(255,255,255,.07); color: var(--cream); }
+    .sidebar-nav a.active { background: rgba(200,169,110,.15); color: var(--gold); }
+    .sidebar-nav .icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-footer { margin-top: auto; padding: 16px; }
+    .btn-preview {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 10px;
+      background: rgba(200,169,110,.12); border: 1px solid rgba(200,169,110,.3);
+      border-radius: 8px; color: var(--gold); font-size: 13px; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: background .2s;
+    }
+    .btn-preview:hover { background: rgba(200,169,110,.22); }
+
+    /* ── MAIN ── */
+    .main { margin-right: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: #fff; border-bottom: 1px solid #e2ddd6;
+      padding: 0 32px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 16px; font-weight: 600; color: var(--ocean); }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .save-status { font-size: 13px; color: #999; transition: color .3s; }
+    .save-status.saved { color: var(--green); }
+    .save-status.error  { color: var(--red); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity .2s, transform .15s; }
+    .btn:hover { opacity: .85; transform: translateY(-1px); }
+    .btn-save { background: var(--gold); color: var(--ocean); }
+    .btn-save:disabled { opacity: .5; cursor: default; transform: none; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* ── CONTENT ── */
+    .content { padding: 32px; flex: 1; }
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+    .panel-title { font-size: 22px; font-weight: 600; color: var(--ocean); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+    .panel-title .icon { font-size: 24px; }
+
+    /* ── CARDS ── */
+    .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #e8e3dc; }
+    .card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gold); margin-bottom: 16px; }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: #6b7e8a; margin-bottom: 5px; }
+    .field input, .field textarea, .field select {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #ddd8d0; border-radius: 8px;
+      font-family: 'Heebo', sans-serif; font-size: 14px; color: #1a2830;
+      background: #faf9f6; direction: rtl;
+      transition: border-color .2s;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--gold); background: #fff; }
+    .field textarea { min-height: 80px; resize: vertical; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    /* ── REPEATABLE ITEMS ── */
+    .item-list { display: flex; flex-direction: column; gap: 12px; }
+    .item-block {
+      background: #faf9f6; border: 1px solid #e2ddd6; border-radius: 10px;
+      padding: 16px; position: relative;
+    }
+    .item-block .item-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(200,169,110,.15); color: var(--dg);
+      font-size: 12px; font-weight: 700; margin-bottom: 12px;
+    }
+    .item-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .btn-del { background: rgba(184,98,76,.1); color: var(--red); border: none; }
+    .btn-del:hover { background: rgba(184,98,76,.2); }
+    .btn-add {
+      width: 100%; padding: 10px;
+      background: transparent; border: 2px dashed #d4cfc7;
+      border-radius: 10px; color: #888; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: border-color .2s, color .2s;
+    }
+    .btn-add:hover { border-color: var(--gold); color: var(--dg); }
+
+    /* ── PHOTO UPLOAD ── */
+    .photo-upload-wrap { display: flex; gap: 20px; align-items: center; }
+    .photo-preview {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--sand), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 300; color: var(--ocean);
+      overflow: hidden; flex-shrink: 0; border: 3px solid var(--sand);
+    }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-upload-btns { display: flex; flex-direction: column; gap: 8px; }
+    .btn-upload { background: var(--ocean); color: var(--cream); }
+    .btn-clear { background: #f0ede8; color: #888; border: 1px solid #ddd; }
+    #photoFileInput { display: none; }
+
+    /* ── STATS ROW ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .stat-block { display: flex; flex-direction: column; gap: 8px; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+      background: var(--ocean); color: var(--cream); padding: 12px 24px; border-radius: 100px;
+      font-size: 14px; font-weight: 600; opacity: 0;
+      transition: transform .3s, opacity .3s; z-index: 9999;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--red); }
+
+    /* ── CREDENTIALS ── */
+    .cred-list { display: flex; flex-direction: column; gap: 8px; }
+    .cred-row { display: flex; gap: 8px; align-items: center; }
+    .cred-row input { flex: 1; }
+    .btn-icon { width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .btn-icon-del { background: rgba(184,98,76,.1); color: var(--red); }
+    .btn-icon-del:hover { background: rgba(184,98,76,.2); }
+
+    /* ── FORMS ── */
+    .forms-table { border-radius: 10px; overflow: hidden; border: 1px solid #e2ddd6; }
+    .forms-table-header { display: grid; grid-template-columns: 1fr 100px 80px 120px; gap: 12px; padding: 12px 16px; background: #f7f4ef; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a9ba5; }
+    .forms-table-row { display: grid; grid-template-columns: 1fr 100px 80px 120px; gap: 12px; padding: 14px 16px; background: #fff; border-top: 1px solid #f0ece6; align-items: center; transition: background .15s; }
+    .forms-table-row:hover { background: #faf9f6; }
+    .form-row-title { font-weight: 600; font-size: 14px; color: var(--ocean); }
+    .form-row-id { font-family: monospace; font-size: 12px; color: #8a9ba5; }
+    .form-row-date { font-size: 12px; color: #aaa; }
+    .form-row-actions { display: flex; gap: 6px; }
+    .btn-row-edit { background: rgba(28,58,74,.08); color: var(--ocean); border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .2s; }
+    .btn-row-edit:hover { background: rgba(28,58,74,.16); }
+    .btn-row-del  { background: rgba(184,98,76,.08); color: var(--red); border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .2s; }
+    .btn-row-del:hover { background: rgba(184,98,76,.18); }
+    .empty-forms { text-align: center; padding: 60px 24px; color: #aaa; font-size: 15px; }
+    .empty-forms .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* question blocks in editor */
+    .q-block { background: #faf9f6; border: 1px solid #e2ddd6; border-radius: 10px; padding: 18px; margin-bottom: 12px; position: relative; }
+    .q-block-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .q-type-badge { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; }
+    .q-type-text     { background: rgba(58,107,122,.12); color: #3A6B7A; }
+    .q-type-textarea { background: rgba(28,58,74,.1); color: var(--ocean); }
+    .q-type-radio    { background: rgba(200,169,110,.18); color: var(--dg); }
+    .q-type-checkbox { background: rgba(46,93,75,.12); color: var(--green); }
+    .q-type-file     { background: rgba(130,80,180,.12); color: #7040b0; }
+    .q-type-date     { background: rgba(28,120,180,.12); color: #1c6090; }
+    .q-block-drag { color: #ccc; cursor: grab; font-size: 18px; margin-left: auto; }
+    .q-required-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; cursor: pointer; }
+    .q-required-toggle input { width: 14px; height: 14px; accent-color: var(--gold); }
+    .options-editor { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .option-row { display: flex; gap: 8px; align-items: center; }
+    .option-row input { flex: 1; }
+
+    /* ── PAGE BREAK ── */
+    .page-break-block { position: relative; margin-bottom: 12px; }
+    .page-break-line { display: flex; align-items: center; gap: 12px; }
+    .page-break-line::before,.page-break-line::after { content:''; flex:1; height:2px; background: linear-gradient(to left, rgba(200,169,110,.4), transparent); }
+    .page-break-line::before { background: linear-gradient(to right, rgba(200,169,110,.4), transparent); }
+    .page-break-badge { display: flex; align-items: center; gap: 8px; background: rgba(200,169,110,.12); border: 1.5px dashed rgba(200,169,110,.5); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--dg); white-space: nowrap; flex-shrink: 0; }
+    .page-break-controls { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-right: 4px; }
+    .page-break-title-input { flex:1; padding: 7px 10px; border: 1px solid #ddd8d0; border-radius: 6px; font-family: 'Heebo', sans-serif; font-size: 13px; color: #1a2830; background: #fff; direction: rtl; }
+    .page-break-title-input:focus { outline: none; border-color: var(--gold); }
+
+    /* ── BRANCHING ── */
+    .branching-section { margin-top: 14px; border-top: 1px dashed #e2ddd6; padding-top: 14px; }
+    .branching-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .branching-toggle-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 13px; font-weight: 600; color: var(--ocean); }
+    .branch-toggle-switch { position: relative; width: 36px; height: 20px; }
+    .branch-toggle-switch input { display: none; }
+    .branch-toggle-track { position: absolute; inset: 0; background: #d4cfc8; border-radius: 100px; transition: background .2s; }
+    .branch-toggle-switch input:checked + .branch-toggle-track { background: var(--gold); }
+    .branch-toggle-thumb { position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: right .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .branch-toggle-switch input:checked ~ .branch-toggle-thumb { right: calc(100% - 17px); }
+    .branching-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: rgba(200,169,110,.18); color: var(--dg); padding: 2px 8px; border-radius: 100px; }
+    .send-data-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: rgba(46,93,75,.15); color: var(--green); padding: 2px 8px; border-radius: 100px; }
+    .send-data-section { margin-top: 10px; border-top: 1px dashed #e2ddd6; padding-top: 10px; }
+    .branch-toggle-switch.send-toggle input:checked + .branch-toggle-track { background: var(--green); }
+    .branches-table { display: flex; flex-direction: column; gap: 8px; }
+    .branch-row { display: grid; grid-template-columns: 24px 1fr 24px 1fr; gap: 8px; align-items: center; padding: 8px 12px; background: rgba(200,169,110,.06); border: 1px solid rgba(200,169,110,.2); border-radius: 8px; }
+    .branch-if { font-size: 11px; font-weight: 700; color: #aaa; text-align: center; }
+    .branch-val { font-size: 13px; font-weight: 600; color: var(--ocean); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .branch-then { font-size: 11px; font-weight: 700; color: #aaa; text-align: center; }
+    .branch-select { width: 100%; padding: 7px 10px; border: 1px solid #ddd8d0; border-radius: 6px; font-family: 'Heebo', sans-serif; font-size: 13px; color: #1a2830; background: #fff; direction: rtl; cursor: pointer; }
+    .branch-select:focus { outline: none; border-color: var(--gold); }
+
+    /* leads panel */
+    .leads-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .leads-search { flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid #ddd8d0; border-radius: 8px; font-family: 'Heebo',sans-serif; font-size: 14px; direction: rtl; background: #faf9f6; }
+    .leads-search:focus { outline: none; border-color: var(--gold); }
+    .leads-filter { padding: 9px 14px; border: 1px solid #ddd8d0; border-radius: 8px; font-family: 'Heebo',sans-serif; font-size: 13px; background: #faf9f6; color: #1a2830; cursor: pointer; }
+    .leads-count { font-size: 13px; color: #8a9ba8; white-space: nowrap; }
+    .lead-answers-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .lead-chip { display: inline-block; background: #f0ece6; border-radius: 4px; padding: 2px 8px; font-size: 11px; color: #4a6070; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lead-chip strong { color: var(--ocean); }
+    .btn-del-lead { background: none; border: none; cursor: pointer; color: #c0392b; font-size: 14px; padding: 3px 6px; border-radius: 4px; opacity: .5; transition: opacity .15s; }
+    .btn-del-lead:hover { opacity: 1; background: rgba(192,57,43,.08); }
+    .lead-row-expanded { background: #faf9f6 !important; }
+    .lead-detail-row td { padding: 0 !important; border-bottom: 2px solid var(--gold) !important; }
+    .lead-detail-inner { padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 10px; }
+    .lead-detail-field { background: #fff; border: 1px solid #e2ddd6; border-radius: 8px; padding: 10px 14px; }
+    .lead-detail-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a9ba8; margin-bottom: 4px; }
+    .lead-detail-value { font-size: 14px; color: #1a2830; word-break: break-word; }
+    .leads-empty { text-align: center; padding: 60px 20px; color: #aaa; font-size: 15px; }
+    .btn-send-form { padding: 4px 10px; border-radius: 5px; border: 1px solid rgba(200,169,110,.4); background: rgba(200,169,110,.1); color: var(--dg); font-family:'Heebo',sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s; }
+    .btn-send-form:hover { background: rgba(200,169,110,.25); }
+
+    /* send-form modal */
+    #sendFormModal { position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center; }
+    #sendFormModal.open { display:flex; }
+    .sfm-overlay { position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px); }
+    .sfm-box { position:relative;background:#fff;border-radius:14px;padding:28px 28px 20px;width:480px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.2); }
+    .sfm-title { font-size:17px;font-weight:700;color:var(--ocean);margin-bottom:6px; }
+    .sfm-sub { font-size:13px;color:#8a9ba8;margin-bottom:18px; }
+    .sfm-list { overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px; }
+    .sfm-form-item { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid #e2ddd6;border-radius:10px;cursor:default;transition:border-color .15s,background .15s; }
+    .sfm-form-item:hover { border-color:var(--gold);background:#faf9f6; }
+    .sfm-form-name { font-weight:600;color:var(--ocean);font-size:14px; }
+    .sfm-form-desc { font-size:12px;color:#8a9ba8;margin-top:2px; }
+    .sfm-form-actions { display:flex;gap:6px;flex-shrink:0; }
+    .sfm-btn { padding:5px 12px;border-radius:6px;border:none;font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s; }
+    .sfm-btn-copy { background:rgba(28,58,74,.08);color:var(--ocean); }
+    .sfm-btn-copy:hover { background:rgba(28,58,74,.15); }
+    .sfm-btn-wa { background:#25D366;color:#fff; }
+    .sfm-btn-wa:hover { background:#1da84e; }
+    .sfm-empty { text-align:center;padding:32px;color:#aaa;font-size:14px; }
+    .sfm-close { position:absolute;top:14px;left:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;line-height:1; }
+
+    /* add-lead modal */
+    #addLeadModal { position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center; }
+    #addLeadModal.open { display:flex; }
+    .alm-overlay { position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px); }
+    .alm-box { position:relative;background:#fff;border-radius:14px;padding:28px 28px 24px;width:500px;max-width:95vw;box-shadow:0 24px 60px rgba(0,0,0,.2);z-index:1; }
+    .alm-title { font-size:17px;font-weight:700;color:var(--ocean);margin-bottom:18px; }
+    .alm-close { position:absolute;top:14px;left:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa; }
+    .alm-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px; }
+    .alm-field { display:flex;flex-direction:column;gap:5px; }
+    .alm-field.full { grid-column:1/-1; }
+    .alm-label { font-size:12px;font-weight:600;color:#6b7e8a;letter-spacing:.04em; }
+    .alm-input { padding:9px 12px;border:1px solid #ddd8d0;border-radius:8px;font-family:'Heebo',sans-serif;font-size:14px;background:#faf9f6;direction:rtl;transition:border-color .2s; }
+    .alm-input:focus { outline:none;border-color:var(--gold);background:#fff; }
+    .alm-textarea { min-height:80px;resize:vertical; }
+    .alm-extra { margin-bottom:12px; }
+    .alm-extra-list { display:flex;flex-direction:column;gap:8px;margin-bottom:8px; }
+    .alm-extra-row { display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center; }
+    .alm-btn-add-field { background:none;border:1px dashed #c8b88a;color:var(--dg);border-radius:6px;padding:5px 12px;font-family:'Heebo',sans-serif;font-size:12px;cursor:pointer;width:100%; }
+    .alm-btn-add-field:hover { background:rgba(200,169,110,.08); }
+    .alm-actions { display:flex;justify-content:flex-end;gap:10px;margin-top:18px;border-top:1px solid #f0ece6;padding-top:16px; }
+
+    /* submissions table */
+    .sub-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .sub-table th { background: #f7f4ef; padding: 8px 12px; text-align: right; font-weight: 600; color: #6b7e8a; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #e2ddd6; }
+    .sub-table td { padding: 10px 12px; border-bottom: 1px solid #f0ece6; color: #1a2830; vertical-align: top; }
+    .sub-table tr:hover td { background: #faf9f6; }
+    .sub-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 8px; border-radius: 100px; background: rgba(200,169,110,.2); color: var(--dg); font-size: 12px; font-weight: 700; }
+    .no-subs { text-align: center; padding: 32px; color: #aaa; font-size: 14px; }
+
+    /* ── EMAIL SEND FEATURE ── */
+    .send-data-bar {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+      padding: 10px 14px; background: #f7f4ef; border-radius: 8px;
+      border: 1px solid #e2ddd6; flex-wrap: wrap;
+    }
+    .btn-field-select {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 6px;
+      border: 1.5px solid var(--ocean); background: transparent;
+      color: var(--ocean); font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: 'Heebo', sans-serif;
+      transition: background .15s, color .15s;
+    }
+    .btn-field-select.active { background: var(--ocean); color: var(--cream); }
+    .field-sel-checkboxes {
+      display: none; flex-wrap: wrap; gap: 6px 14px;
+      margin-top: 8px; width: 100%;
+    }
+    .field-sel-checkboxes.open { display: flex; }
+    .field-sel-label {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 13px; color: #333; cursor: pointer; white-space: nowrap;
+    }
+    .field-sel-label input[type=checkbox] { accent-color: var(--ocean); width: 14px; height: 14px; }
+    .send-count-badge {
+      font-size: 12px; background: var(--ocean); color: var(--cream);
+      border-radius: 100px; padding: 2px 9px; font-weight: 700;
+    }
+    .btn-send-lead {
+      padding: 4px 11px; border-radius: 5px; border: none;
+      background: var(--ocean); color: var(--cream); font-size: 12px;
+      font-weight: 600; cursor: pointer; white-space: nowrap; font-family: 'Heebo', sans-serif;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .subs-has-selection .btn-send-lead { opacity: 1; pointer-events: auto; }
+
+    /* EMAIL MODAL */
+    #emailModal {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,.5); align-items: center; justify-content: center;
+    }
+    #emailModal.open { display: flex; }
+    .email-modal-box {
+      background: #fff; border-radius: 14px; width: 520px; max-width: 96vw;
+      max-height: 90vh; overflow-y: auto; padding: 28px 28px 24px;
+      direction: rtl; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .email-modal-title { font-size: 18px; font-weight: 700; color: var(--ocean); margin-bottom: 20px; }
+    .email-modal-close {
+      position: absolute; top: 14px; left: 16px; background: none; border: none;
+      font-size: 24px; cursor: pointer; color: #bbb; line-height: 1;
+      transition: color .15s;
+    }
+    .email-modal-close:hover { color: #444; }
+    .email-label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 6px; }
+    .email-to-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px;
+      font-size: 14px; font-family: 'Heebo', sans-serif; direction: ltr; text-align: left;
+      transition: border-color .15s;
+    }
+    .email-to-input:focus { outline: none; border-color: var(--ocean); }
+    .email-hint { font-size: 11px; color: #aaa; margin-top: 4px; }
+    .email-preview-wrap {
+      margin-top: 18px; border: 1px solid #e2ddd6; border-radius: 8px; overflow: hidden;
+    }
+    .email-preview-head {
+      background: var(--ocean); color: var(--cream);
+      padding: 8px 14px; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    }
+    .email-preview-row {
+      display: grid; grid-template-columns: 2fr 3fr;
+      border-bottom: 1px solid #e2ddd6;
+    }
+    .email-preview-row:last-child { border-bottom: none; }
+    .email-preview-q {
+      padding: 9px 12px; font-size: 13px; font-weight: 600; color: var(--ocean);
+      background: #faf9f6; border-left: 1px solid #e2ddd6;
+    }
+    .email-preview-a { padding: 9px 12px; font-size: 13px; color: #333; word-break: break-word; }
+    .email-no-fields { padding: 14px; font-size: 13px; color: #aaa; text-align: center; }
+    .btn-send-email {
+      margin-top: 20px; width: 100%; padding: 13px; border-radius: 8px;
+      background: var(--ocean); color: var(--cream); border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Heebo', sans-serif;
+      transition: background .15s;
+    }
+    .btn-send-email:hover:not(:disabled) { background: var(--green); }
+    .btn-send-email:disabled { background: #bbb; cursor: default; }
+    .email-status { margin-top: 10px; font-size: 13px; text-align: center; min-height: 20px; }
+
+    /* EMAIL SETTINGS */
+    .email-cfg-section {
+      margin-top: 14px; border-top: 1px solid #e2ddd6; padding-top: 14px;
+    }
+    .email-cfg-toggle {
+      background: none; border: none; font-size: 12px; color: #999;
+      cursor: pointer; font-family: 'Heebo', sans-serif; padding: 0;
+      text-decoration: underline;
+    }
+    .email-cfg-fields { margin-top: 10px; display: none; }
+    .email-cfg-fields.open { display: grid; gap: 8px; }
+    .email-cfg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .email-cfg-input {
+      width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 13px; font-family: 'Heebo', sans-serif; direction: ltr;
+    }
+    .email-cfg-input:focus { outline: none; border-color: var(--ocean); }
+    /* ── loading spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 14px; padding: 48px 24px;
+    }
+    .loader-ring {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 3px solid #e8e3dc;
+      border-top-color: var(--gold);
+      animation: spin .75s linear infinite;
+    }
+    .loader-text {
+      font-size: 13px; color: #aaa; font-weight: 500; letter-spacing: .03em;
+    }
+
+    .btn-save-cfg {
+      padding: 7px 18px; border-radius: 6px; background: var(--ocean); color: var(--cream);
+      border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Heebo', sans-serif;
+    }
+
+    /* ── lead link status icon ── */
+    .lead-link-status {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:30px; height:30px; border-radius:50%; cursor:help;
+      font-size:15px; font-weight:700; flex-shrink:0; transition:background .2s;
+    }
+    .lead-link-status.pending  { background:#e0e0e0; color:#555; border:2px solid #bbb; }
+    .lead-link-status.received { background:#d4f0e2; color:#1a7a4e; border:2px solid #5cba8a; }
+
+    /* ── linked submissions (sub-records) ── */
+    .linked-subs-section { grid-column:1/-1; margin-top:14px; border-top:2px dashed rgba(200,169,110,.35); padding-top:14px; }
+    .linked-subs-title { font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--dg);margin-bottom:10px;display:flex;align-items:center;gap:8px; }
+    .linked-sub-card { background:#fff;border:1px solid #e2ddd6;border-radius:10px;margin-bottom:8px;overflow:hidden; }
+    .linked-sub-header { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .15s;user-select:none; }
+    .linked-sub-header:hover { background:#faf9f6; }
+    .linked-sub-form-title { font-weight:700;color:var(--ocean);font-size:13px;flex:1; }
+    .linked-sub-date { font-size:11px;color:#aaa;white-space:nowrap; }
+    .linked-sub-toggle { font-size:12px;color:#bbb;transition:transform .2s; }
+    .linked-sub-toggle.open { transform:rotate(180deg); }
+    .linked-sub-body { display:none;padding:10px 14px 14px;border-top:1px solid #f0ece6; }
+    .linked-sub-body.open { display:block; }
+    .linked-sub-fields { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px; }
+    .linked-sub-field { background:#faf9f6;border:1px solid #e8e3dc;border-radius:6px;padding:8px 12px; }
+    .linked-sub-field-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#8a9ba8;margin-bottom:3px; }
+    .linked-sub-field-value { font-size:13px;color:#1a2830;word-break:break-word; }
+    .linked-sub-files { margin-top:8px;display:flex;flex-direction:column;gap:6px; }
+
+    /* ── files collapse row ── */
+    .lead-files-inner {
+      padding:14px 20px; background:#faf4ff;
+      border-bottom:2px solid rgba(130,80,180,.25);
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .lead-files-title { font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7040b0;margin-bottom:4px; }
+    .lead-file-row { display:flex;align-items:center;gap:10px;padding:9px 14px;background:#fff;border:1px solid rgba(130,80,180,.2);border-radius:8px; }
+    .lead-file-label { font-size:12px;font-weight:600;color:#7040b0; }
+    .lead-file-name  { flex:1;font-size:13px;color:#1a2830; overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .lead-file-dl    { padding:4px 10px;border-radius:5px;background:var(--ocean);color:var(--cream);font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap; }
+
+    /* ── view-all-data modal ── */
+    #viewAllModal { position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center; }
+    #viewAllModal.open { display:flex; }
+    .vam-overlay { position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px); }
+    .vam-box { position:relative;background:#fff;border-radius:14px;padding:28px 28px 24px;width:600px;max-width:95vw;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.25);z-index:1; }
+    .vam-title { font-size:17px;font-weight:700;color:var(--ocean);margin-bottom:4px; }
+    .vam-sub   { font-size:12px;color:#8a9ba8;margin-bottom:18px; }
+    .vam-close { position:absolute;top:14px;left:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa; }
+    .vam-field { padding:12px 14px;background:#faf9f6;border:1px solid #e2ddd6;border-radius:8px;margin-bottom:8px; }
+    .vam-label { font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a9ba8;margin-bottom:4px; }
+    .vam-value { font-size:15px;color:#1a2830;word-break:break-word;line-height:1.5; }
+    .vam-files-section { margin-top:16px;border-top:2px dashed rgba(130,80,180,.25);padding-top:14px; }
+    .vam-files-title { font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7040b0;margin-bottom:10px; }
+    .vam-file-item { display:flex;align-items:center;gap:10px;padding:10px 14px;background:#faf4ff;border:1px solid rgba(130,80,180,.2);border-radius:8px;margin-bottom:6px; }
+    .vam-file-name { flex:1;font-size:13px;color:#1a2830;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .vam-file-dl { padding:5px 12px;border-radius:6px;background:var(--ocean);color:var(--cream);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN OVERLAY ═══ -->
+<div id="loginOverlay" style="
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(28,58,74,.92);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:340px;box-shadow:0 24px 60px rgba(0,0,0,.25);text-align:center;">
+    <div style="font-size:32px;margin-bottom:12px;">🔐</div>
+    <div style="font-family:'Fraunces',serif;font-size:22px;color:#1C3A4A;margin-bottom:6px;">כניסה לממשק ניהול</div>
+    <div style="font-size:13px;color:#8a9ba5;margin-bottom:24px;">הזן את קוד הגישה להמשך</div>
+    <input id="loginTokenInput" type="password" placeholder="קוד גישה..."
+      style="width:100%;padding:12px 14px;border:1.5px solid #d8d3ca;border-radius:8px;
+             font-family:'Heebo',sans-serif;font-size:15px;text-align:center;direction:ltr;
+             margin-bottom:12px;outline:none;" />
+    <div id="loginError" style="display:none;color:#B8624C;font-size:13px;margin-bottom:10px;">קוד גישה שגוי</div>
+    <button id="loginBtn" style="width:100%;background:#1C3A4A;color:#fff;border:none;
+      padding:13px;border-radius:8px;font-family:'Heebo',sans-serif;font-size:15px;
+      font-weight:700;cursor:pointer;">כניסה</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      ניהול <span>תוכן</span>
+      <div class="sidebar-sub">עמוד לירון מזרחי</div>
+    </div>
+    <div class="nav-section">סקשנים</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" class="active" data-panel="nav">    <span class="icon">🔗</span> ניווט</a></li>
+      <li><a href="#" data-panel="hero">                  <span class="icon">🏠</span> Hero</a></li>
+      <li><a href="#" data-panel="painSolution">          <span class="icon">⚡</span> כאב ← פתרון</a></li>
+      <li><a href="#" data-panel="process">               <span class="icon">📋</span> תהליך</a></li>
+      <li><a href="#" data-panel="specialties">           <span class="icon">⭐</span> התמחויות</a></li>
+      <li><a href="#" data-panel="about">                 <span class="icon">👤</span> אודות</a></li>
+      <li><a href="#" data-panel="testimonials">          <span class="icon">💬</span> המלצות</a></li>
+      <li><a href="#" data-panel="cta">                   <span class="icon">📨</span> CTA / יצירת קשר</a></li>
+      <li><a href="#" data-panel="footer">                <span class="icon">📄</span> Footer</a></li>
+    </ul>
+    <div class="nav-section">כלים</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-panel="forms">               <span class="icon">📝</span> טפסים</a></li>
+      <li><a href="#" data-panel="leads">               <span class="icon">👥</span> לידים</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" class="btn-preview">👁 צפייה בעמוד</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">ניווט</div>
+      <div class="topbar-actions">
+        <span class="save-status" id="saveStatus"></span>
+        <button class="btn btn-save" id="saveBtn" onclick="saveContent()">💾 שמור שינויים</button>
+      </div>
+    </div>
+
+    <div class="content" id="mainContent">
+
+      <!-- ═══ NAV ═══ -->
+      <div class="section-panel active" id="panel-nav">
+        <div class="panel-title"><span class="icon">🔗</span> ניווט עליון</div>
+        <div class="card">
+          <div class="card-title">לוגו</div>
+          <div class="row-2">
+            <div class="field"><label>טקסט לוגו</label><input type="text" data-path="nav.logoText" /></div>
+            <div class="field"><label>טקסט לוגו (זהב/הדגשה)</label><input type="text" data-path="nav.logoAccent" /></div>
+          </div>
+          <div class="field"><label>טקסט כפתור CTA</label><input type="text" data-path="nav.ctaText" /></div>
+        </div>
+      </div>
+
+      <!-- ═══ HERO ═══ -->
+      <div class="section-panel" id="panel-hero">
+        <div class="panel-title"><span class="icon">🏠</span> Hero</div>
+        <div class="card">
+          <div class="card-title">טקסטים ראשיים</div>
+          <div class="field"><label>תגית עליונה (badge)</label><input type="text" data-path="hero.tag" /></div>
+          <div class="row-2">
+            <div class="field"><label>שורת כותרת ראשונה</label><input type="text" data-path="hero.titleLine1" /></div>
+            <div class="field"><label>שורת כותרת שנייה (איטליק זהב)</label><input type="text" data-path="hero.titleItalic" /></div>
+          </div>
+          <div class="field"><label>תת-כותרת</label><textarea data-path="hero.subtitle"></textarea></div>
+          <div class="field"><label>טקסט כפתור CTA</label><input type="text" data-path="hero.ctaText" /></div>
+        </div>
+        <div class="card">
+          <div class="card-title">תגי אמון (מופרדים בפסיק)</div>
+          <div class="field"><label>פריט 1</label><input type="text" data-path="hero.trust.0" /></div>
+          <div class="field"><label>פריט 2</label><input type="text" data-path="hero.trust.1" /></div>
+          <div class="field"><label>פריט 3</label><input type="text" data-path="hero.trust.2" /></div>
+        </div>
+        <div class="card">
+          <div class="card-title">נתונים (צ'יפים)</div>
+          <div id="heroStats" class="stats-row"></div>
+        </div>
+      </div>
+
+      <!-- ═══ PAIN/SOLUTION ═══ -->
+      <div class="section-panel" id="panel-painSolution">
+        <div class="panel-title"><span class="icon">⚡</span> כאב ← פתרון</div>
+        <div class="card">
+          <div class="card-title">כותרות סקשן</div>
+          <div class="row-2">
+            <div class="field"><label>תווית סקשן</label><input type="text" data-path="painSolution.sectionLabel" /></div>
+            <div class="field"><label>כותרת ראשית</label><input type="text" data-path="painSolution.title" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">נקודות כאב (אדום)</div>
+          <div id="painsList" class="item-list"></div>
+          <button class="btn-add" onclick="addItem('painSolution.pains', {title:'',text:''}, renderPains)">+ הוסף נקודת כאב</button>
+        </div>
+        <div class="card">
+          <div class="card-title">פתרונות (ירוק)</div>
+          <div id="solutionsList" class="item-list"></div>
+          <button class="btn-add" onclick="addItem('painSolution.solutions', {title:'',text:''}, renderSolutions)">+ הוסף פתרון</button>
+        </div>
+      </div>
+
+      <!-- ═══ PROCESS ═══ -->
+      <div class="section-panel" id="panel-process">
+        <div class="panel-title"><span class="icon">📋</span> תהליך</div>
+        <div class="card">
+          <div class="row-2">
+            <div class="field"><label>תווית סקשן</label><input type="text" data-path="process.sectionLabel" /></div>
+            <div class="field"><label>כותרת</label><input type="text" data-path="process.title" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">שלבי התהליך</div>
+          <div id="stepsList" class="item-list"></div>
+        </div>
+      </div>
+
+      <!-- ═══ SPECIALTIES ═══ -->
+      <div class="section-panel" id="panel-specialties">
+        <div class="panel-title"><span class="icon">⭐</span> התמחויות</div>
+        <div class="card">
+          <div class="row-2">
+            <div class="field"><label>תווית סקשן</label><input type="text" data-path="specialties.sectionLabel" /></div>
+            <div class="field"><label>כותרת</label><input type="text" data-path="specialties.title" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">כרטיסים</div>
+          <div id="specCardsList" class="item-list"></div>
+          <button class="btn-add" onclick="addItem('specialties.cards', {title:'',text:''}, renderSpecCards)">+ הוסף כרטיס</button>
+        </div>
+      </div>
+
+      <!-- ═══ ABOUT ═══ -->
+      <div class="section-panel" id="panel-about">
+        <div class="panel-title"><span class="icon">👤</span> אודות</div>
+        <div class="card">
+          <div class="card-title">תמונת פרופיל</div>
+          <div class="photo-upload-wrap">
+            <div class="photo-preview" id="photoPreview">
+              <span id="photoInitials"></span>
+            </div>
+            <div class="photo-upload-btns">
+              <button class="btn btn-upload" onclick="document.getElementById('photoFileInput').click()">📤 העלאת תמונה</button>
+              <button class="btn btn-clear btn-sm" onclick="clearPhoto()">✕ הסרת תמונה</button>
+              <input type="file" id="photoFileInput" accept="image/*" onchange="uploadPhoto(this)" />
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">פרטים אישיים</div>
+          <div class="row-3">
+            <div class="field"><label>שם מלא</label><input type="text" data-path="about.name" /></div>
+            <div class="field"><label>תפקיד / כותרת</label><input type="text" data-path="about.subtitle" /></div>
+            <div class="field"><label>ראשי תיבות (placeholder)</label><input type="text" data-path="about.initials" /></div>
+          </div>
+          <div class="row-2">
+            <div class="field"><label>תווית סקשן</label><input type="text" data-path="about.sectionLabel" /></div>
+            <div class="field"><label>כותרת ראשית</label><input type="text" data-path="about.title" /></div>
+          </div>
+          <div class="field"><label>פסקת חום אישית</label><textarea data-path="about.text" style="min-height:120px;"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title">אישורים / כישורים</div>
+          <div id="credList" class="cred-list"></div>
+          <button class="btn-add" style="margin-top:10px;" onclick="addCredential()">+ הוסף אישור</button>
+        </div>
+      </div>
+
+      <!-- ═══ TESTIMONIALS ═══ -->
+      <div class="section-panel" id="panel-testimonials">
+        <div class="panel-title"><span class="icon">💬</span> המלצות</div>
+        <div class="card">
+          <div class="row-2">
+            <div class="field"><label>תווית סקשן</label><input type="text" data-path="testimonials.sectionLabel" /></div>
+            <div class="field"><label>כותרת</label><input type="text" data-path="testimonials.title" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">ציטוטים</div>
+          <div id="testiList" class="item-list"></div>
+          <button class="btn-add" onclick="addItem('testimonials.items', {text:'',name:'',case:''}, renderTestis)">+ הוסף המלצה</button>
+        </div>
+      </div>
+
+      <!-- ═══ CTA ═══ -->
+      <div class="section-panel" id="panel-cta">
+        <div class="panel-title"><span class="icon">📨</span> CTA / יצירת קשר</div>
+        <div class="card">
+          <div class="card-title">כותרות</div>
+          <div class="row-2">
+            <div class="field"><label>תווית סקשן</label><input type="text" data-path="cta.sectionLabel" /></div>
+            <div class="field"><label>כותרת (חלק רגיל)</label><input type="text" data-path="cta.title" /></div>
+          </div>
+          <div class="row-2">
+            <div class="field"><label>כותרת (חלק איטליק זהב)</label><input type="text" data-path="cta.titleItalic" /></div>
+            <div class="field"><label>תת-כותרת</label><input type="text" data-path="cta.subtitle" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">וואטסאפ</div>
+          <div class="row-2">
+            <div class="field"><label>מספר טלפון (עם קידומת, ללא +)</label><input type="text" data-path="cta.whatsappNumber" placeholder="972501234567" /></div>
+            <div class="field"><label>טקסט כפתור וואטסאפ</label><input type="text" data-path="cta.whatsappText" /></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">טופס יצירת קשר</div>
+          <div class="field"><label>כותרת הטופס</label><input type="text" data-path="cta.formTitle" /></div>
+          <div class="field"><label>טקסט הבטחה (מתחת לטופס)</label><textarea data-path="cta.promise"></textarea></div>
+        </div>
+      </div>
+
+      <!-- ═══ FORMS ═══ -->
+      <div class="section-panel" id="panel-forms">
+        <div class="panel-title"><span class="icon">📝</span> ניהול טפסים</div>
+
+        <!-- FORMS LIST VIEW -->
+        <div id="formsListView">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <p style="font-size:14px;color:#6b7e8a;">צור טפסים מותאמים אישית עם שאלות מסוגים שונים.</p>
+            <button class="btn btn-save" onclick="showNewFormEditor()">＋ טופס חדש</button>
+          </div>
+          <div id="formsTable"></div>
+        </div>
+
+        <!-- FORM DETAIL VIEW -->
+        <div id="formDetailView" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <button class="btn" style="background:#f0ede8;color:#444;" onclick="backToFormsList()">← חזרה לרשימה</button>
+            <div style="flex:1;font-size:18px;font-weight:700;color:var(--ocean);" id="detailFormTitle"></div>
+            <button class="btn" style="background:rgba(28,58,74,.08);color:var(--ocean);" onclick="editFormFromDetail()">✏️ עריכה</button>
+            <button class="btn btn-save" onclick="saveFormFromDetail()">💾 שמור</button>
+          </div>
+
+          <!-- stats row -->
+          <div id="detailStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;"></div>
+
+          <!-- info card -->
+          <div class="card" id="detailInfoCard">
+            <div class="card-title">פרטי הטופס</div>
+            <div class="row-2">
+              <div class="field"><label>שם הטופס</label><input type="text" id="detailTitle" oninput="syncDetailTitle(this.value)" /></div>
+              <div class="field"><label>תיאור</label><input type="text" id="detailDesc" /></div>
+            </div>
+            <div class="field">
+              <label>קישור ציבורי</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="detailLink" readonly style="background:#f0ede8;font-family:monospace;font-size:13px;" />
+                <button class="btn btn-sm" style="background:var(--ocean);color:var(--cream);flex-shrink:0;" onclick="copyLink('detailLink')">📋 העתק</button>
+                <a id="detailOpenLink" href="#" target="_blank" class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);flex-shrink:0;">👁 פתח</a>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <div style="font-size:12px;color:#aaa;">מזהה: <code id="detailId" style="background:#f0ede8;padding:2px 6px;border-radius:4px;"></code></div>
+              <div style="font-size:12px;color:#aaa;margin-right:16px;">נוצר: <span id="detailCreated"></span></div>
+            </div>
+          </div>
+
+          <!-- questions overview -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="card-title" style="margin-bottom:0;">שאלות <span id="detailQCount" style="font-weight:400;color:#aaa;"></span></div>
+              <button class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);" onclick="editFormFromDetail()">+ עריכת שאלות</button>
+            </div>
+            <div id="detailQuestions"></div>
+          </div>
+
+          <!-- submissions -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="card-title" style="margin-bottom:0;">הגשות <span id="detailSubCount" style="font-weight:400;color:#aaa;"></span></div>
+              <button class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);" onclick="loadDetailSubmissions()">🔄 רענן</button>
+            </div>
+            <div id="detailSubmissions"></div>
+          </div>
+        </div>
+
+        <!-- FORM EDITOR VIEW -->
+        <div id="formEditorView" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <button class="btn" style="background:#f0ede8;color:#444;" onclick="detailFormId && currentForm ? backToDetailFromEditor() : backToFormsList()">← חזרה</button>
+            <div style="flex:1;font-size:16px;font-weight:600;color:var(--ocean);" id="editorFormTitle">טופס חדש</div>
+            <button class="btn btn-save" onclick="saveForm()">💾 שמור טופס</button>
+          </div>
+
+          <!-- form meta -->
+          <div class="card">
+            <div class="card-title">פרטי הטופס</div>
+            <div class="row-2">
+              <div class="field"><label>שם הטופס</label><input type="text" id="fTitle" placeholder="לדוגמה: טופס ייצוג ראשוני" oninput="document.getElementById('editorFormTitle').textContent=this.value||'טופס חדש'" /></div>
+              <div class="field"><label>תיאור קצר (אופציונלי)</label><input type="text" id="fDesc" placeholder="הסבר קצר שיוצג לממלא הטופס" /></div>
+            </div>
+            <div id="fIdRow" style="display:none;" class="field">
+              <label>קישור לטופס</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="fIdDisplay" readonly style="background:#f0ede8;font-family:monospace;font-size:13px;" />
+                <button class="btn btn-sm" style="background:var(--ocean);color:var(--cream);flex-shrink:0;" onclick="copyFormLink()">📋 העתק</button>
+                <a id="fIdOpenLink" href="#" target="_blank" class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);flex-shrink:0;">👁 פתח</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- questions -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="card-title" style="margin-bottom:0;">שאלות</div>
+              <span style="font-size:12px;color:#aaa;" id="qCount">0 שאלות</span>
+            </div>
+            <div id="questionsList"></div>
+            <!-- add question buttons -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+              <button class="btn-add" onclick="addQuestion('text')">＋ שאלה פתוחה — שורה אחת</button>
+              <button class="btn-add" onclick="addQuestion('textarea')">＋ שאלה פתוחה — פסקה</button>
+              <button class="btn-add" onclick="addQuestion('radio')">＋ בחירה יחידה (רדיו)</button>
+              <button class="btn-add" onclick="addQuestion('checkbox')">＋ בחירה מרובה (תיבות)</button>
+              <button class="btn-add" onclick="addQuestion('date')" style="border-color:rgba(28,120,180,.3);color:#1c6090;">📅 שאלת תאריך</button>
+              <button class="btn-add" onclick="addQuestion('file')" style="border-color:rgba(130,80,180,.3);color:#7040b0;">📎 קבלת קובץ (PDF / PNG / JPG / DOC)</button>
+              <button class="btn-add" onclick="addPageBreak()" style="grid-column:1/-1;border-color:rgba(200,169,110,.5);color:var(--dg);">📄 הוסף מעבר עמוד</button>
+            </div>
+          </div>
+
+          <!-- submissions (only for existing forms) -->
+          <div class="card" id="submissionsCard" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="card-title" style="margin-bottom:0;">הגשות שהתקבלו</div>
+              <button class="btn btn-sm" style="background:var(--ocean);color:var(--cream);" onclick="loadSubmissions()">🔄 רענן</button>
+            </div>
+            <div id="submissionsContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ LEADS ═══ -->
+      <div class="section-panel" id="panel-leads">
+        <div class="panel-title"><span class="icon">👥</span> לידים</div>
+        <div class="card">
+          <div class="leads-toolbar">
+            <input type="text" class="leads-search" id="leadsSearch" placeholder="🔍  חפש לפי שם, טלפון, טופס..." oninput="filterLeads()" />
+            <select class="leads-filter" id="leadsFormFilter" onchange="filterLeads()">
+              <option value="">כל הטפסים</option>
+            </select>
+            <button class="btn btn-sm" style="background:var(--ocean);color:var(--cream);font-weight:700;" onclick="openAddLeadModal()">➕ הוסף ליד</button>
+            <button class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);" onclick="loadLeads()">🔄 רענן</button>
+            <span class="leads-count" id="leadsCount"></span>
+          </div>
+          <div id="leadsTableWrap"></div>
+        </div>
+      </div>
+
+      <!-- ═══ FOOTER ═══ -->
+      <div class="section-panel" id="panel-footer">
+        <div class="panel-title"><span class="icon">📄</span> Footer</div>
+        <div class="card">
+          <div class="field"><label>טקסט Footer</label><textarea data-path="footer.text"></textarea></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══════════════ ADD LEAD MODAL ══════════════ -->
+<div id="addLeadModal">
+  <div class="alm-overlay" onclick="closeAddLeadModal()"></div>
+  <div class="alm-box">
+    <button class="alm-close" onclick="closeAddLeadModal()">×</button>
+    <div class="alm-title">➕ הוספת ליד ידני</div>
+    <div class="alm-grid">
+      <div class="alm-field">
+        <label class="alm-label">שם מלא</label>
+        <input type="text" class="alm-input" id="alm-name" placeholder="ישראל ישראלי" />
+      </div>
+      <div class="alm-field">
+        <label class="alm-label">טלפון</label>
+        <input type="text" class="alm-input" id="alm-phone" placeholder="05X-XXXXXXX" />
+      </div>
+      <div class="alm-field">
+        <label class="alm-label">אימייל</label>
+        <input type="email" class="alm-input" id="alm-email" placeholder="email@example.com" />
+      </div>
+      <div class="alm-field">
+        <label class="alm-label">מקור</label>
+        <input type="text" class="alm-input" id="alm-source" placeholder="לדוג׳: המלצה, פייסבוק..." />
+      </div>
+      <div class="alm-field full">
+        <label class="alm-label">הערות</label>
+        <textarea class="alm-input alm-textarea" id="alm-notes" placeholder="פרטים נוספים על הליד..."></textarea>
+      </div>
+    </div>
+    <!-- שדות נוספים -->
+    <div class="alm-extra">
+      <div class="alm-label" style="margin-bottom:8px;">שדות נוספים (אופציונלי)</div>
+      <div class="alm-extra-list" id="almExtraFields"></div>
+      <button class="alm-btn-add-field" onclick="almAddField()">＋ הוסף שדה</button>
+    </div>
+    <div class="alm-actions">
+      <button class="btn" style="background:rgba(28,58,74,.08);color:var(--ocean);padding:9px 20px;" onclick="closeAddLeadModal()">ביטול</button>
+      <button class="btn" style="background:var(--ocean);color:var(--cream);padding:9px 24px;font-weight:700;" onclick="saveManualLead()">שמור ליד ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SEND FORM MODAL ══════════════ -->
+<div id="sendFormModal">
+  <div class="sfm-overlay" onclick="closeSendFormModal()"></div>
+  <div class="sfm-box">
+    <button class="sfm-close" onclick="closeSendFormModal()">×</button>
+    <div class="sfm-title">📋 שלח טופס ללקוח</div>
+    <div class="sfm-sub">בחר טופס — העתק קישור או שלח דרך וואטסאפ</div>
+    <div class="sfm-list" id="sfmList"></div>
+  </div>
+</div>
+
+<!-- ══════════════ VIEW ALL DATA MODAL ══════════════ -->
+<div id="viewAllModal">
+  <div class="vam-overlay" onclick="closeViewAllModal()"></div>
+  <div class="vam-box">
+    <button class="vam-close" onclick="closeViewAllModal()">×</button>
+    <div class="vam-title" id="vamTitle">נתוני ליד</div>
+    <div class="vam-sub"   id="vamSub"></div>
+    <div id="vamContent"></div>
+  </div>
+</div>
+
+<!-- ══════════════ EMAIL SEND MODAL ══════════════ -->
+<div id="emailModal">
+  <div class="email-modal-box">
+    <button class="email-modal-close" onclick="closeEmailModal()">×</button>
+    <div class="email-modal-title">📧 שליחת נתוני ליד</div>
+
+    <label class="email-label">כתובת/ות מייל <span style="font-weight:400;color:#aaa;">(מופרדות בפסיק)</span></label>
+    <input type="text" id="emailToInput" class="email-to-input"
+           placeholder="example@gmail.com, other@domain.com" />
+    <div class="email-hint">ניתן להזין מספר כתובות מופרדות בפסיק</div>
+
+    <div class="email-preview-wrap" id="emailPreview"></div>
+
+    <div class="email-status" id="emailStatus"></div>
+    <button class="btn-send-email" id="btnSendEmail" onclick="doSendLeadEmail()">שלח מייל ✉</button>
+
+    <!-- email settings (collapsible) -->
+    <div class="email-cfg-section">
+      <button class="email-cfg-toggle" onclick="toggleEmailCfg()">⚙️ הגדרות SMTP</button>
+      <div class="email-cfg-fields" id="emailCfgFields">
+        <div class="email-cfg-row">
+          <input class="email-cfg-input" id="cfgHost" placeholder="שרת SMTP (לדוגמה: smtp.gmail.com)" />
+          <input class="email-cfg-input" id="cfgPort" type="number" placeholder="פורט (587 / 465)" />
+        </div>
+        <input class="email-cfg-input" id="cfgUser" placeholder="כתובת מייל שולח" />
+        <input class="email-cfg-input" id="cfgPass" type="password" placeholder="סיסמה / App Password" />
+        <input class="email-cfg-input" id="cfgFromName" placeholder='שם השולח (לדוגמה: "מערכת לירון")' />
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-save-cfg" onclick="saveEmailCfg()">💾 שמור</button>
+          <span id="cfgStatus" style="font-size:12px;color:#aaa;"></span>
+        </div>
+        <div style="font-size:11px;color:#bbb;margin-top:4px;">
+          לGmail: הפעל "אימות דו-שלבי" וצור App Password תחת
+          <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--ocean);">myaccount.google.com/apppasswords</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let C = {}; // global content object
+
+/* ─── utils ─── */
+function getPath(obj, path) {
+  return path.split('.').reduce((o, k) => (o != null ? o[k] : undefined), obj);
+}
+function setPath(obj, path, val) {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (cur[keys[i]] == null) cur[keys[i]] = {};
+    cur = cur[keys[i]];
+  }
+  cur[keys[keys.length - 1]] = val;
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ─── load content ─── */
+async function loadContent() {
+  const res = await apiFetch('/api/content');
+  C = await res.json();
+  populateSimpleFields();
+  renderHeroStats();
+  renderPains();
+  renderSolutions();
+  renderSteps();
+  renderSpecCards();
+  renderAboutCredentials();
+  renderTestis();
+  updatePhotoPreview();
+}
+
+function populateSimpleFields() {
+  document.querySelectorAll('[data-path]').forEach(el => {
+    const val = getPath(C, el.dataset.path);
+    if (val != null) el.value = val;
+  });
+  document.querySelectorAll('[data-path]').forEach(el => {
+    el.addEventListener('input', () => {
+      setPath(C, el.dataset.path, el.value);
+    });
+  });
+}
+
+/* ─── HERO STATS ─── */
+function renderHeroStats() {
+  const wrap = document.getElementById('heroStats');
+  wrap.innerHTML = '';
+  (C.hero.stats || []).forEach((s, i) => {
+    wrap.innerHTML += `
+      <div class="stat-block">
+        <div class="field"><label>מספר / ערך</label>
+          <input type="text" value="${s.num}" oninput="C.hero.stats[${i}].num=this.value" /></div>
+        <div class="field"><label>תיאור</label>
+          <input type="text" value="${s.label}" oninput="C.hero.stats[${i}].label=this.value" /></div>
+      </div>`;
+  });
+}
+
+/* ─── PAINS ─── */
+function renderPains() {
+  const list = document.getElementById('painsList');
+  list.innerHTML = '';
+  (C.painSolution.pains || []).forEach((p, i) => {
+    list.innerHTML += `
+      <div class="item-block">
+        <div class="item-num">${i+1}</div>
+        <div class="field"><label>כותרת</label>
+          <input type="text" value="${esc(p.title)}" oninput="C.painSolution.pains[${i}].title=this.value" /></div>
+        <div class="field"><label>תיאור</label>
+          <textarea oninput="C.painSolution.pains[${i}].text=this.value">${esc(p.text)}</textarea></div>
+        <div class="item-actions">
+          <button class="btn btn-del btn-sm" onclick="removeItem('painSolution.pains',${i},renderPains)">🗑 מחיקה</button>
+        </div>
+      </div>`;
+  });
+}
+
+/* ─── SOLUTIONS ─── */
+function renderSolutions() {
+  const list = document.getElementById('solutionsList');
+  list.innerHTML = '';
+  (C.painSolution.solutions || []).forEach((s, i) => {
+    list.innerHTML += `
+      <div class="item-block">
+        <div class="item-num">${i+1}</div>
+        <div class="field"><label>כותרת</label>
+          <input type="text" value="${esc(s.title)}" oninput="C.painSolution.solutions[${i}].title=this.value" /></div>
+        <div class="field"><label>תיאור</label>
+          <textarea oninput="C.painSolution.solutions[${i}].text=this.value">${esc(s.text)}</textarea></div>
+        <div class="item-actions">
+          <button class="btn btn-del btn-sm" onclick="removeItem('painSolution.solutions',${i},renderSolutions)">🗑 מחיקה</button>
+        </div>
+      </div>`;
+  });
+}
+
+/* ─── STEPS ─── */
+function renderSteps() {
+  const list = document.getElementById('stepsList');
+  list.innerHTML = '';
+  (C.process.steps || []).forEach((s, i) => {
+    list.innerHTML += `
+      <div class="item-block">
+        <div class="item-num">${s.num}</div>
+        <div class="row-2">
+          <div class="field"><label>כותרת שלב</label>
+            <input type="text" value="${esc(s.title)}" oninput="C.process.steps[${i}].title=this.value" /></div>
+          <div class="field"><label>תיאור</label>
+            <input type="text" value="${esc(s.desc)}" oninput="C.process.steps[${i}].desc=this.value" /></div>
+        </div>
+      </div>`;
+  });
+}
+
+/* ─── SPEC CARDS ─── */
+function renderSpecCards() {
+  const list = document.getElementById('specCardsList');
+  list.innerHTML = '';
+  (C.specialties.cards || []).forEach((c, i) => {
+    list.innerHTML += `
+      <div class="item-block">
+        <div class="item-num">${i+1}</div>
+        <div class="field"><label>כותרת כרטיס</label>
+          <input type="text" value="${esc(c.title)}" oninput="C.specialties.cards[${i}].title=this.value" /></div>
+        <div class="field"><label>תיאור</label>
+          <textarea oninput="C.specialties.cards[${i}].text=this.value">${esc(c.text)}</textarea></div>
+        <div class="item-actions">
+          <button class="btn btn-del btn-sm" onclick="removeItem('specialties.cards',${i},renderSpecCards)">🗑 מחיקה</button>
+        </div>
+      </div>`;
+  });
+}
+
+/* ─── CREDENTIALS ─── */
+function renderAboutCredentials() {
+  const list = document.getElementById('credList');
+  list.innerHTML = '';
+  (C.about.credentials || []).forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'cred-row';
+    row.innerHTML = `
+      <input type="text" value="${esc(c)}" oninput="C.about.credentials[${i}]=this.value" />
+      <button class="btn-icon btn-icon-del" onclick="removeItem('about.credentials',${i},renderAboutCredentials)">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function addCredential() {
+  C.about.credentials = C.about.credentials || [];
+  C.about.credentials.push('');
+  renderAboutCredentials();
+}
+
+/* ─── TESTIMONIALS ─── */
+function renderTestis() {
+  const list = document.getElementById('testiList');
+  list.innerHTML = '';
+  (C.testimonials.items || []).forEach((t, i) => {
+    list.innerHTML += `
+      <div class="item-block">
+        <div class="item-num">${i+1}</div>
+        <div class="field"><label>ציטוט</label>
+          <textarea oninput="C.testimonials.items[${i}].text=this.value">${esc(t.text)}</textarea></div>
+        <div class="row-2">
+          <div class="field"><label>שם לקוח</label>
+            <input type="text" value="${esc(t.name)}" oninput="C.testimonials.items[${i}].name=this.value" /></div>
+          <div class="field"><label>תיאור מקרה</label>
+            <input type="text" value="${esc(t.case)}" oninput="C.testimonials.items[${i}].case=this.value" /></div>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-del btn-sm" onclick="removeItem('testimonials.items',${i},renderTestis)">🗑 מחיקה</button>
+        </div>
+      </div>`;
+  });
+}
+
+/* ─── HELPERS ─── */
+function esc(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function addItem(path, template, renderFn) {
+  const arr = getPath(C, path) || [];
+  arr.push({...template});
+  setPath(C, path, arr);
+  renderFn();
+}
+function removeItem(path, idx, renderFn) {
+  const arr = getPath(C, path) || [];
+  arr.splice(idx, 1);
+  setPath(C, path, arr);
+  renderFn();
+}
+
+/* ─── PHOTO ─── */
+function updatePhotoPreview() {
+  const preview = document.getElementById('photoPreview');
+  const initials = document.getElementById('photoInitials');
+  if (C.about && C.about.photo) {
+    preview.innerHTML = `<img src="${C.about.photo}" alt="פרופיל" />`;
+  } else {
+    preview.innerHTML = `<span id="photoInitials">${C.about ? C.about.initials || '' : ''}</span>`;
+  }
+}
+async function uploadPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('photo', file);
+  const res = await apiFetch('/api/upload', { method: 'POST', body: fd });
+  const data = await res.json();
+  if (data.ok) {
+    C.about.photo = data.url;
+    updatePhotoPreview();
+    showToast('התמונה הועלתה בהצלחה');
+  } else {
+    showToast('שגיאה בהעלאה', 'error');
+  }
+  input.value = '';
+}
+function clearPhoto() {
+  C.about.photo = '';
+  updatePhotoPreview();
+}
+
+/* ─── SAVE ─── */
+async function saveContent() {
+  const btn = document.getElementById('saveBtn');
+  const status = document.getElementById('saveStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ שומר...';
+  try {
+    const res = await apiFetch('/api/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(C, null, 2)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('השינויים נשמרו בהצלחה ✓');
+      status.textContent = 'נשמר';
+      status.className = 'save-status saved';
+      setTimeout(() => { status.textContent = ''; status.className = 'save-status'; }, 3000);
+    } else throw new Error(data.error);
+  } catch(e) {
+    showToast('שגיאה בשמירה: ' + e.message, 'error');
+    status.textContent = 'שגיאה';
+    status.className = 'save-status error';
+  }
+  btn.disabled = false;
+  btn.textContent = '💾 שמור שינויים';
+}
+
+/* ─── NAVIGATION ─── */
+document.querySelectorAll('.sidebar-nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const panel = a.dataset.panel;
+    document.querySelectorAll('.sidebar-nav a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + panel).classList.add('active');
+    document.getElementById('topbarTitle').textContent = a.textContent.trim();
+  });
+});
+
+/* ─── AUTO-SAVE INDICATOR ─── */
+document.addEventListener('input', () => {
+  const s = document.getElementById('saveStatus');
+  s.textContent = 'יש שינויים לא שמורים';
+  s.className = 'save-status';
+});
+
+/* ════════════════════════════════════════
+   AUTH — login overlay + apiFetch wrapper
+════════════════════════════════════════ */
+const SESSION_KEY = 'adminToken';
+
+// apiFetch: drop-in replacement for fetch() that injects the admin token
+async function apiFetch(url, opts = {}) {
+  const token = sessionStorage.getItem(SESSION_KEY) || '';
+  opts.headers = { ...(opts.headers || {}), 'X-Admin-Token': token };
+  const res = await fetch(url, opts);
+  if (res.status === 401) {
+    sessionStorage.removeItem(SESSION_KEY);
+    showLoginOverlay();
+    throw new Error('Session expired — please log in again');
+  }
+  return res;
+}
+
+function showLoginOverlay() {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginTokenInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  setTimeout(() => document.getElementById('loginTokenInput').focus(), 100);
+}
+
+function hideLoginOverlay() {
+  document.getElementById('loginOverlay').style.display = 'none';
+}
+
+async function doLogin() {
+  const token = document.getElementById('loginTokenInput').value.trim();
+  if (!token) return;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '⏳ בודק...';
+  try {
+    // Use plain fetch — token not yet in sessionStorage, apiFetch would overwrite it with ''
+    const res = await fetch('/api/email-config', {
+      headers: { 'X-Admin-Token': token }
+    });
+    if (res.status === 401) {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('loginTokenInput').select();
+      return;
+    }
+    sessionStorage.setItem(SESSION_KEY, token);
+    hideLoginOverlay();
+    loadContent();
+    loadForms();
+  } catch (e) {
+    document.getElementById('loginError').textContent = 'שגיאת רשת — נסה שוב';
+    document.getElementById('loginError').style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'כניסה';
+  }
+}
+
+/* ─── LOGIN EVENT LISTENERS (replaces inline onkeydown / onclick) ─── */
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginTokenInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+/* ─── INIT ─── */
+// Show login if no token saved, otherwise boot directly
+if (!sessionStorage.getItem(SESSION_KEY)) {
+  showLoginOverlay();
+} else {
+  loadContent();
+  loadForms();
+}
+
+/* ══════════════════════════════════════
+   FORMS MANAGER
+══════════════════════════════════════ */
+
+let allForms = [];
+let currentForm = null; // form being edited
+let currentQuestions = []; // live question array
+
+const TYPE_LABELS = { text: 'שורה', textarea: 'פסקה', radio: 'בחירה יחידה', checkbox: 'בחירה מרובה', file: 'קובץ', date: 'תאריך' };
+const TYPE_CLASS  = { text: 'q-type-text', textarea: 'q-type-textarea', radio: 'q-type-radio', checkbox: 'q-type-checkbox', file: 'q-type-file', date: 'q-type-date' };
+
+/* ── load and render forms list ── */
+async function loadForms() {
+  const res = await apiFetch('/api/forms');
+  const data = await res.json();
+  allForms = data.forms || [];
+  renderFormsList();
+}
+
+function renderFormsList() {
+  const wrap = document.getElementById('formsTable');
+  if (!allForms.length) {
+    wrap.innerHTML = `<div class="empty-forms"><div class="empty-icon">📋</div><div>אין טפסים עדיין</div><div style="font-size:13px;margin-top:6px;">לחץ על "טופס חדש" כדי להתחיל</div></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="forms-table">
+      <div class="forms-table-header">
+        <div>שם הטופס / ID</div>
+        <div>שאלות</div>
+        <div>הגשות</div>
+        <div>פעולות</div>
+      </div>
+      ${allForms.map(f => `
+        <div class="forms-table-row">
+          <div>
+            <div class="form-row-title">${esc(f.title)}</div>
+            <div class="form-row-id">${f.id}</div>
+          </div>
+          <div><span class="sub-badge">${(f.questions||[]).length}</span></div>
+          <div><span class="sub-badge" id="subCount-${f.id}">—</span></div>
+          <div class="form-row-actions">
+            <button class="btn-row-edit" onclick="showFormDetail('${f.id}')">📋 פירוט</button>
+            <button class="btn-row-edit" onclick="editForm('${f.id}')" style="background:rgba(46,93,75,.1);color:var(--green);">✏️ עריכה</button>
+            <button class="btn-row-del"  onclick="deleteForm('${f.id}')">🗑</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  // load submission counts async
+  allForms.forEach(f => {
+    apiFetch(`/api/submissions/${f.id}`)
+      .then(r => r.json())
+      .then(d => {
+        const el = document.getElementById(`subCount-${f.id}`);
+        if (el) el.textContent = (d.submissions||[]).length;
+      }).catch(() => {});
+  });
+}
+
+/* ── new form ── */
+function showNewFormEditor() {
+  currentForm = null;
+  detailFormId = null;
+  currentQuestions = [];
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fDesc').value  = '';
+  document.getElementById('fIdRow').style.display = 'none';
+  document.getElementById('submissionsCard').style.display = 'none';
+  document.getElementById('editorFormTitle').textContent = 'טופס חדש';
+  renderQuestionsList();
+  document.getElementById('formsListView').style.display  = 'none';
+  document.getElementById('formEditorView').style.display = 'block';
+}
+
+/* ── edit existing ── */
+function editForm(id) {
+  currentForm = allForms.find(f => f.id === id);
+  if (!currentForm) return;
+  currentQuestions = JSON.parse(JSON.stringify(currentForm.questions || []));
+  document.getElementById('fTitle').value = currentForm.title || '';
+  document.getElementById('fDesc').value  = currentForm.description || '';
+  const link = `${location.origin}/form/${currentForm.id}`;
+  document.getElementById('fIdDisplay').value = link;
+  document.getElementById('fIdOpenLink').href = link;
+  document.getElementById('fIdRow').style.display = '';
+  document.getElementById('submissionsCard').style.display = '';
+  document.getElementById('editorFormTitle').textContent = currentForm.title || 'טופס';
+  renderQuestionsList();
+  loadSubmissions();
+  document.getElementById('formsListView').style.display  = 'none';
+  document.getElementById('formEditorView').style.display = 'block';
+}
+
+function backToFormsList() {
+  detailFormId = null;
+  document.getElementById('formEditorView').style.display  = 'none';
+  document.getElementById('formDetailView').style.display  = 'none';
+  document.getElementById('formsListView').style.display   = 'block';
+}
+
+/* ── delete ── */
+async function deleteForm(id) {
+  const form = allForms.find(f => f.id === id);
+  if (!confirm(`למחוק את הטופס "${form?.title}"? לא ניתן לשחזר.`)) return;
+  await apiFetch(`/api/forms/${id}`, { method: 'DELETE' });
+  showToast('הטופס נמחק');
+  loadForms();
+}
+
+/* ── save form ── */
+async function saveForm() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { showToast('יש להזין שם לטופס', 'error'); return; }
+  const payload = { title, description: document.getElementById('fDesc').value.trim(), questions: currentQuestions };
+  let res;
+  if (currentForm) {
+    res = await apiFetch(`/api/forms/${currentForm.id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  } else {
+    res = await apiFetch('/api/forms', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  }
+  const data = await res.json();
+  if (data.ok) {
+    currentForm = data.form;
+    const link = `${location.origin}/form/${currentForm.id}`;
+    document.getElementById('fIdDisplay').value = link;
+    document.getElementById('fIdOpenLink').href = link;
+    document.getElementById('fIdRow').style.display = '';
+    document.getElementById('submissionsCard').style.display = '';
+    showToast('הטופס נשמר בהצלחה ✓');
+    loadForms();
+  } else { showToast('שגיאה: ' + data.error, 'error'); }
+}
+
+function copyFormLink() { copyToClipboard(document.getElementById('fIdDisplay').value); }
+
+/* ══ QUESTIONS EDITOR ══ */
+
+function genQId() { return 'q' + Math.random().toString(36).slice(2,7); }
+
+function addQuestion(type) {
+  const q = { id: genQId(), type, label: '', description: '', required: false, options: (type === 'radio' || type === 'checkbox') ? [''] : [], dateFormat: type === 'date' ? 'DD/MM/YYYY' : undefined };
+  currentQuestions.push(q);
+  renderQuestionsList();
+  // focus new label
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.q-label-input');
+    if (inputs.length) inputs[inputs.length-1].focus();
+  }, 50);
+}
+
+function removeQuestion(idx) {
+  currentQuestions.splice(idx, 1);
+  renderQuestionsList();
+}
+
+function moveQuestion(idx, dir) {
+  const target = idx + dir;
+  if (target < 0 || target >= currentQuestions.length) return;
+  [currentQuestions[idx], currentQuestions[target]] = [currentQuestions[target], currentQuestions[idx]];
+  renderQuestionsList();
+}
+
+function addOption(qi) {
+  currentQuestions[qi].options = currentQuestions[qi].options || [];
+  currentQuestions[qi].options.push('');
+  renderQuestionsList();
+}
+
+function removeOption(qi, oi) {
+  currentQuestions[qi].options.splice(oi, 1);
+  renderQuestionsList();
+}
+
+function renderQuestionsList() {
+  const list = document.getElementById('questionsList');
+  const realQs = currentQuestions.filter(q => q.type !== 'page_break').length;
+  const pages  = currentQuestions.filter(q => q.type === 'page_break').length + 1;
+  document.getElementById('qCount').textContent = `${realQs} שאלות · ${pages} עמוד${pages>1?'ות':''}`;
+  if (!currentQuestions.length) {
+    list.innerHTML = `<div style="text-align:center;padding:32px;color:#bbb;font-size:14px;">לחץ על אחד הכפתורים למטה כדי להוסיף שאלה</div>`;
+    return;
+  }
+  // compute real question numbers (skip page_break items)
+  let qNum = 0;
+  // compute page numbers
+  let pageNum = 1;
+  list.innerHTML = currentQuestions.map((q, qi) => {
+    /* ── PAGE BREAK ── */
+    if (q.type === 'page_break') {
+      pageNum++;
+      return `
+        <div class="page-break-block fade-in" id="qblock-${qi}">
+          <div class="page-break-line">
+            <div class="page-break-badge">📄 עמוד ${pageNum}</div>
+          </div>
+          <div class="page-break-controls">
+            <input class="page-break-title-input" type="text" value="${esc(q.title||'')}"
+              placeholder="כותרת עמוד (אופציונלי)"
+              oninput="currentQuestions[${qi}].title=this.value" />
+            <button class="btn-icon" style="background:#f0ede8;color:#888;" onclick="moveQuestion(${qi},-1)" ${qi===0?'disabled':''} title="הזז למעלה">↑</button>
+            <button class="btn-icon" style="background:#f0ede8;color:#888;" onclick="moveQuestion(${qi},1)" ${qi===currentQuestions.length-1?'disabled':''} title="הזז למטה">↓</button>
+            <button class="btn-icon btn-icon-del" onclick="removeQuestion(${qi})" title="מחק מעבר עמוד">🗑</button>
+          </div>
+        </div>`;
+    }
+
+    qNum++;
+    const isChoice = q.type === 'radio' || q.type === 'checkbox';
+    const optionsHtml = isChoice ? `
+      <div class="options-editor" id="opts-${qi}">
+        ${(q.options||[]).map((opt, oi) => `
+          <div class="option-row">
+            <span style="font-size:14px;color:#bbb;flex-shrink:0;">${q.type === 'radio' ? '⊙' : '☐'}</span>
+            <input type="text" value="${esc(opt)}" placeholder="אפשרות ${oi+1}"
+              oninput="currentQuestions[${qi}].options[${oi}]=this.value"
+              style="padding:8px 10px;border:1px solid #ddd8d0;border-radius:6px;font-family:'Heebo',sans-serif;font-size:13px;" />
+            <button class="btn-icon btn-icon-del" onclick="removeOption(${qi},${oi})" ${(q.options||[]).length<=1?'disabled':''}>✕</button>
+          </div>`).join('')}
+        <button class="btn-add" style="margin-top:6px;padding:7px;" onclick="addOption(${qi})">＋ הוסף אפשרות</button>
+      </div>` : '';
+
+    /* branching panel — only for radio / checkbox */
+    let branchingHtml = '';
+    if (isChoice) {
+      const branchingOn = !!q.branching;
+      q.branches = q.branches || {};
+      const branchRows = (q.options||[]).filter(o => o.trim()).map((opt, oi) => {
+        const currTarget = q.branches[opt] || 'next';
+
+        // compute page number for each question
+        let pageCounter = 1;
+        const qPageMap = {}; // qId → pageNum
+        currentQuestions.forEach(cq => {
+          if (cq.type === 'page_break') { pageCounter++; }
+          else { qPageMap[cq.id] = pageCounter; }
+        });
+
+        // total pages
+        const totalPages = pageCounter;
+
+        // question options (skip page_break entries, add page label)
+        const questionOpts = currentQuestions
+          .map((tq, ti) => {
+            if (tq.type === 'page_break') return '';
+            if (ti === qi) return '';
+            const pg = qPageMap[tq.id];
+            const pgLabel = totalPages > 1 ? ` [עמוד ${pg}]` : '';
+            const qLabel = tq.label || 'שאלה ללא שם';
+            const num = currentQuestions.slice(0, ti).filter(x => x.type !== 'page_break').length + 1;
+            return `<option value="${tq.id}" ${currTarget===tq.id?'selected':''}>${num}. ${esc(qLabel)}${pgLabel}</option>`;
+          })
+          .filter(Boolean);
+
+        // page-jump options (jump to start of page N, skipping pages in between)
+        const pageJumpOpts = totalPages > 1
+          ? Array.from({length: totalPages}, (_, i) => i + 1)
+              .filter(pn => pn !== qPageMap[q.id]) // exclude current page
+              .map(pn => `<option value="page:${pn}" ${currTarget===`page:${pn}`?'selected':''}>⏩ דלג לעמוד ${pn}</option>`)
+          : [];
+
+        // build options for target select
+        const targetOpts = [
+          `<option value="next" ${currTarget==='next'?'selected':''}>← המשך רגיל</option>`,
+          `<option value="end"  ${currTarget==='end' ?'selected':''}>⏹ סיום הטופס</option>`,
+          questionOpts.length ? `<optgroup label="── קפוץ לשאלה ──">${questionOpts.join('')}</optgroup>` : '',
+          pageJumpOpts.length ? `<optgroup label="── דלג לעמוד ──">${pageJumpOpts.join('')}</optgroup>` : '',
+        ].join('');
+        return `
+          <div class="branch-row">
+            <span class="branch-if">אם</span>
+            <span class="branch-val" title="${esc(opt)}">"${esc(opt)}"</span>
+            <span class="branch-then">→</span>
+            <select class="branch-select" onchange="setBranch(${qi},'${opt.replace(/'/g,"\\'")}',this.value)">${targetOpts}</select>
+          </div>`;
+      }).join('');
+
+      branchingHtml = `
+        <div class="branching-section">
+          <div class="branching-header">
+            <label class="branching-toggle-wrap">
+              <div class="branch-toggle-switch">
+                <input type="checkbox" id="btoggle-${qi}" ${branchingOn?'checked':''} onchange="toggleBranching(${qi},this.checked)" />
+                <div class="branch-toggle-track"></div>
+                <div class="branch-toggle-thumb"></div>
+              </div>
+              הסתעפויות לפי תשובה
+            </label>
+            ${branchingOn ? '<span class="branching-badge">פעיל</span>' : ''}
+          </div>
+          ${branchingOn && branchRows ? `<div class="branches-table">${branchRows}</div>` : ''}
+          ${branchingOn && !branchRows ? '<div style="font-size:13px;color:#aaa;padding:8px;">הוסף אפשרויות לשאלה כדי להגדיר הסתעפויות</div>' : ''}
+        </div>`;
+    }
+
+    return `
+      <div class="q-block" id="qblock-${qi}">
+        <div class="q-block-header">
+          <span class="q-type-badge ${TYPE_CLASS[q.type]}">${TYPE_LABELS[q.type]}</span>
+          <span style="font-size:12px;color:#aaa;">שאלה ${qNum}</span>
+          <div style="margin-right:auto;display:flex;gap:4px;">
+            <button class="btn-icon" style="background:#f0ede8;color:#888;" onclick="moveQuestion(${qi},-1)" ${qi===0?'disabled':''} title="הזז למעלה">↑</button>
+            <button class="btn-icon" style="background:#f0ede8;color:#888;" onclick="moveQuestion(${qi},1)" ${qi===currentQuestions.length-1?'disabled':''} title="הזז למטה">↓</button>
+            <button class="btn-icon btn-icon-del" onclick="removeQuestion(${qi})" title="מחק שאלה">🗑</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>טקסט השאלה <span style="color:var(--red)">*</span></label>
+          <input type="text" class="q-label-input" value="${esc(q.label)}" placeholder="הזן את השאלה כאן..."
+            oninput="currentQuestions[${qi}].label=this.value" />
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>הסבר נוסף (אופציונלי)</label>
+          <input type="text" value="${esc(q.description||'')}" placeholder="הסבר קצר שיופיע מתחת לשאלה"
+            oninput="currentQuestions[${qi}].description=this.value" />
+        </div>
+        <label class="q-required-toggle">
+          <input type="checkbox" ${q.required?'checked':''} onchange="currentQuestions[${qi}].required=this.checked" />
+          שדה חובה
+        </label>
+        ${optionsHtml}
+        ${branchingHtml}
+        <div class="send-data-section">
+          <div class="branching-header">
+            <label class="branching-toggle-wrap">
+              <div class="branch-toggle-switch send-toggle">
+                <input type="checkbox" id="sdtoggle-${qi}" ${q.sendData?'checked':''} onchange="toggleSendData(${qi},this.checked)" />
+                <div class="branch-toggle-track"></div>
+                <div class="branch-toggle-thumb"></div>
+              </div>
+              שליחת נתונים
+            </label>
+            ${q.sendData ? '<span class="send-data-badge">📧 ישלח</span>' : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── submissions viewer ── */
+async function loadSubmissions() {
+  if (!currentForm) return;
+  const res  = await apiFetch(`/api/submissions/${currentForm.id}`);
+  const data = await res.json();
+  const subs = data.submissions || [];
+  const qs   = data.form?.questions || [];
+  const wrap = document.getElementById('submissionsContent');
+
+  if (!subs.length) {
+    wrap.innerHTML = `<div class="no-subs">📭 עדיין אין הגשות לטופס זה</div>`;
+    return;
+  }
+
+  // build columns from questions
+  const cols = qs.map(q => `<th>${esc(q.label||q.id)}</th>`).join('');
+  const rows = subs.map(s => {
+    const cells = qs.map(q => {
+      const val = s.answers[`q_${q.id}`];
+      if (!val) return '<td>—</td>';
+      const display = Array.isArray(val) ? val.join(', ') : val;
+      return `<td>${esc(display)}</td>`;
+    }).join('');
+    const date = new Date(s.submittedAt).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<tr><td style="color:#aaa;font-size:12px;white-space:nowrap;">${date}</td>${cells}</tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="sub-table">
+        <thead><tr><th>תאריך</th>${cols}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:#aaa;text-align:left;">${subs.length} הגשות סה"כ</div>`;
+}
+
+/* ── page break ── */
+function addPageBreak() {
+  currentQuestions.push({ id: genQId(), type: 'page_break', title: '' });
+  renderQuestionsList();
+  setTimeout(() => {
+    const all = document.querySelectorAll('.page-break-title-input');
+    if (all.length) all[all.length-1].focus();
+  }, 50);
+}
+
+/* ── branching helpers ── */
+function toggleBranching(qi, on) {
+  currentQuestions[qi].branching = on;
+  if (!on) currentQuestions[qi].branches = {};
+  renderQuestionsList();
+}
+function toggleSendData(qi, on) {
+  currentQuestions[qi].sendData = on;
+  renderQuestionsList();
+}
+function setBranch(qi, optVal, targetId) {
+  currentQuestions[qi].branches = currentQuestions[qi].branches || {};
+  currentQuestions[qi].branches[optVal] = targetId;
+  // no re-render needed — select already updated
+}
+
+/* ════════════════════════════════════
+   FORM DETAIL PAGE
+════════════════════════════════════ */
+
+let detailFormId = null;
+
+function showFormDetail(id) {
+  detailFormId = id;
+  const form = allForms.find(f => f.id === id);
+  if (!form) return;
+
+  // populate fields
+  document.getElementById('detailFormTitle').textContent = form.title;
+  document.getElementById('detailTitle').value     = form.title || '';
+  document.getElementById('detailDesc').value      = form.description || '';
+  document.getElementById('detailId').textContent  = form.id;
+  const link = `${location.origin}/form/${form.id}`;
+  document.getElementById('detailLink').value      = link;
+  document.getElementById('detailOpenLink').href   = link;
+  const created = form.createdAt ? new Date(form.createdAt).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+  document.getElementById('detailCreated').textContent = created;
+
+  // questions
+  renderDetailQuestions(form);
+
+  // stats placeholder
+  renderDetailStats(form, null);
+
+  // switch views
+  document.getElementById('formsListView').style.display   = 'none';
+  document.getElementById('formEditorView').style.display  = 'none';
+  document.getElementById('formDetailView').style.display  = 'block';
+
+  // load submissions async
+  loadDetailSubmissions();
+}
+
+function renderDetailStats(form, subs) {
+  const qs      = (form.questions || []).filter(q => q.type !== 'page_break');
+  const pages   = (form.questions || []).filter(q => q.type === 'page_break').length + 1;
+  const subCount = subs ? subs.length : '...';
+  const updated  = form.updatedAt ? new Date(form.updatedAt).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+  document.getElementById('detailStats').innerHTML = `
+    <div class="card" style="text-align:center;padding:20px 12px;margin-bottom:0;">
+      <div style="font-size:28px;font-weight:700;color:var(--ocean);">${qs.length}</div>
+      <div style="font-size:12px;color:#8a9ba5;margin-top:4px;">שאלות</div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 12px;margin-bottom:0;">
+      <div style="font-size:28px;font-weight:700;color:var(--ocean);">${pages}</div>
+      <div style="font-size:12px;color:#8a9ba5;margin-top:4px;">עמודות</div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 12px;margin-bottom:0;">
+      <div style="font-size:28px;font-weight:700;color:var(--gold);">${subCount}</div>
+      <div style="font-size:12px;color:#8a9ba5;margin-top:4px;">הגשות</div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px 12px;margin-bottom:0;">
+      <div style="font-size:14px;font-weight:600;color:var(--ocean);">${updated}</div>
+      <div style="font-size:12px;color:#8a9ba5;margin-top:4px;">עדכון אחרון</div>
+    </div>`;
+}
+
+const TYPE_ICON = { text:'✏️', textarea:'📝', radio:'⊙', checkbox:'☐', file:'📎', date:'📅', page_break:'📄' };
+
+function renderDetailQuestions(form) {
+  const qs = form.questions || [];
+  const wrap = document.getElementById('detailQuestions');
+  document.getElementById('detailQCount').textContent =
+    `(${qs.filter(q=>q.type!=='page_break').length} שאלות)`;
+
+  if (!qs.length) {
+    wrap.innerHTML = `<div style="text-align:center;padding:24px;color:#bbb;font-size:14px;">אין שאלות בטופס זה</div>`;
+    return;
+  }
+
+  let pageNum = 1, qNum = 0;
+  wrap.innerHTML = qs.map((q, i) => {
+    if (q.type === 'page_break') {
+      pageNum++;
+      return `<div style="display:flex;align-items:center;gap:10px;margin:16px 0 10px;color:var(--dg);font-size:13px;font-weight:700;">
+        <div style="flex:1;height:1px;background:rgba(200,169,110,.3);"></div>
+        📄 עמוד ${pageNum}${q.title ? ` — ${esc(q.title)}` : ''}
+        <div style="flex:1;height:1px;background:rgba(200,169,110,.3);"></div>
+      </div>`;
+    }
+    qNum++;
+    const typeLabel = TYPE_LABELS[q.type] || q.type;
+    const hasBranch = q.branching && q.branches && Object.keys(q.branches).length;
+    const optionsList = (q.type === 'radio' || q.type === 'checkbox') && q.options?.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${q.options.map(o =>
+          `<span style="background:#f0ede8;border:1px solid #ddd;border-radius:4px;padding:2px 8px;font-size:12px;">${esc(o)}</span>`
+        ).join('')}</div>` : '';
+    return `
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:#faf9f6;border:1px solid #e8e3dc;border-radius:8px;margin-bottom:8px;">
+        <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${TYPE_ICON[q.type]||'❓'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;color:var(--ocean);">${qNum}. ${esc(q.label||'שאלה ללא כותרת')}</div>
+          ${q.description ? `<div style="font-size:12px;color:#8a9ba5;margin-top:2px;">${esc(q.description)}</div>` : ''}
+          ${optionsList}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
+          <span style="font-size:11px;background:rgba(28,58,74,.07);color:#5a6e7a;padding:2px 7px;border-radius:4px;">${typeLabel}</span>
+          ${q.required ? `<span style="font-size:11px;background:rgba(184,98,76,.08);color:var(--red);padding:2px 7px;border-radius:4px;">חובה</span>` : ''}
+          ${hasBranch ? `<span style="font-size:11px;background:rgba(200,169,110,.15);color:var(--dg);padding:2px 7px;border-radius:4px;">⚡ הסתעפות</span>` : ''}
+          ${q.sendData ? `<span style="font-size:11px;background:rgba(46,93,75,.12);color:var(--green);padding:2px 7px;border-radius:4px;">📧 שליחה</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadDetailSubmissions() {
+  if (!detailFormId) return;
+  const form = allForms.find(f => f.id === detailFormId);
+  const wrap = document.getElementById('detailSubmissions');
+  wrap.innerHTML = `<div class="loader-wrap"><div class="loader-ring"></div><div class="loader-text">טוען הגשות...</div></div>`;
+
+  try {
+    const res  = await apiFetch(`/api/submissions/${detailFormId}`);
+    const data = await res.json();
+    const subs = data.submissions || [];
+    const qs   = (data.form?.questions || []).filter(q => q.type !== 'page_break');
+
+    // update count in header and stats
+    document.getElementById('detailSubCount').textContent = `(${subs.length})`;
+    renderDetailStats(form, subs);
+
+    if (!subs.length) {
+      wrap.innerHTML = `<div class="no-subs">📭 עדיין אין הגשות לטופס זה</div>`;
+      return;
+    }
+
+    // store for openSendModal access
+    _detailSubs = subs;
+    _detailQs   = qs;
+
+    // which questions are marked for sending (set in form editor)
+    const sendQs = qs.filter(q => q.sendData);
+    const hasSendFields = sendQs.length > 0;
+
+    const cols = qs.map(q => {
+      const tag = q.sendData ? ' <span style="font-size:10px;color:var(--green);font-weight:700;" title="מסומן לשליחה">📧</span>' : '';
+      return `<th>${esc(q.label||q.id)}${tag}</th>`;
+    }).join('');
+
+    const rows = subs.map((s,i) => {
+      const date = new Date(s.submittedAt).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const cells = qs.map(q => {
+        const val = s.answers[`q_${q.id}`];
+        let display = '—';
+        if (val) {
+          if (q.type === 'file') {
+            try {
+              const f = JSON.parse(val);
+              display = `<a href="${esc(f.url)}" target="_blank" style="color:var(--ocean);text-decoration:underline;">📎 ${esc(f.name)}</a>`;
+            } catch { display = esc(val); }
+          } else if (q.type === 'date' && val) {
+            // format YYYY-MM-DD → DD/MM/YYYY
+            const parts = val.split('-');
+            display = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : esc(val);
+          } else {
+            display = Array.isArray(val) ? esc(val.join(', ')) : esc(val);
+          }
+        }
+        return `<td>${display}</td>`;
+      }).join('');
+      const sendBtn = hasSendFields
+        ? `<td style="width:1%;padding:6px 8px;"><button class="btn-send-lead" style="opacity:1;pointer-events:auto;" onclick="openSendModal(${i})">📧 שלח</button></td>`
+        : `<td></td>`;
+      return `<tr><td style="color:#aaa;font-size:12px;white-space:nowrap;">${date}</td>${cells}${sendBtn}</tr>`;
+    }).join('');
+
+    const noSendNote = !hasSendFields
+      ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(200,169,110,.1);border-radius:6px;font-size:12px;color:#8a7050;">
+           💡 סמן שאלות ל"שליחת נתונים" בעורך הטופס כדי לאפשר שליחה ללידים
+         </div>` : '';
+
+    wrap.innerHTML = `
+      ${noSendNote}
+      <div style="overflow-x:auto;">
+        <table class="sub-table">
+          <thead><tr><th>תאריך</th>${cols}<th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;font-size:13px;color:#aaa;text-align:left;">${subs.length} הגשות סה"כ</div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:var(--red);padding:16px;">שגיאה בטעינת הגשות</div>`;
+  }
+}
+
+function syncDetailTitle(val) {
+  document.getElementById('detailFormTitle').textContent = val || 'טופס';
+}
+
+function copyLink(inputId) { copyToClipboard(document.getElementById(inputId).value); }
+
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast('הקישור הועתק ✓');
+  } catch {
+    prompt('העתק את הקישור:', text);
+  }
+}
+
+async function saveFormFromDetail() {
+  if (!detailFormId) return;
+  const form = allForms.find(f => f.id === detailFormId);
+  if (!form) return;
+  const payload = {
+    ...form,
+    title: document.getElementById('detailTitle').value.trim() || form.title,
+    description: document.getElementById('detailDesc').value.trim()
+  };
+  const res  = await apiFetch(`/api/forms/${detailFormId}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const data = await res.json();
+  if (data.ok) {
+    showToast('נשמר בהצלחה ✓');
+    await loadForms();
+    // refresh local form ref
+    detailFormId = data.form.id;
+  } else showToast('שגיאה: ' + data.error, 'error');
+}
+
+function editFormFromDetail() {
+  if (!detailFormId) return;
+  document.getElementById('formDetailView').style.display = 'none';
+  editForm(detailFormId);
+}
+
+function backToDetailFromEditor() {
+  document.getElementById('formEditorView').style.display = 'none';
+  showFormDetail(detailFormId);
+}
+
+/* ── wire up forms panel activation ── */
+document.querySelectorAll('.sidebar-nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    if (a.dataset.panel === 'forms') loadForms();
+    if (a.dataset.panel === 'leads') {
+      // ensure forms are loaded so Send Form modal has data
+      if (!allForms || !allForms.length) loadForms();
+      loadLeads();
+    }
+  });
+});
+
+/* ════════════════════════════════════════
+   LEADS PANEL
+════════════════════════════════════════ */
+
+let _allLeads = [];
+
+async function loadLeads() {
+  const wrap = document.getElementById('leadsTableWrap');
+  wrap.innerHTML = '<div class="loader-wrap"><div class="loader-ring"></div><div class="loader-text">טוען לידים...</div></div>';
+  try {
+    const res  = await apiFetch('/api/leads');
+    const data = await res.json();
+    _allLeads  = data.leads || [];
+
+    // populate form filter
+    const filterSel = document.getElementById('leadsFormFilter');
+    const formNames = [...new Map(_allLeads.map(l => [l.formId, l.formTitle])).entries()];
+    filterSel.innerHTML = '<option value="">כל הטפסים</option>' +
+      formNames.map(([id, title]) => `<option value="${id}">${esc(title)}</option>`).join('');
+
+    renderLeadsTable(_allLeads);
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:var(--red);padding:20px;">שגיאה בטעינת לידים</div>`;
+  }
+}
+
+function filterLeads() {
+  const q    = document.getElementById('leadsSearch').value.trim().toLowerCase();
+  const fid  = document.getElementById('leadsFormFilter').value;
+  let leads  = _allLeads;
+  if (fid)   leads = leads.filter(l => l.formId === fid);
+  if (q)     leads = leads.filter(l => {
+    const haystack = [
+      l.formTitle,
+      l.submittedAt,
+      ...Object.values(l.answers || {}).map(v => Array.isArray(v) ? v.join(' ') : String(v||''))
+    ].join(' ').toLowerCase();
+    return haystack.includes(q);
+  });
+  renderLeadsTable(leads);
+}
+
+function renderLeadsTable(leads) {
+  const wrap = document.getElementById('leadsTableWrap');
+  document.getElementById('leadsCount').textContent = leads.length + ' לידים';
+
+  if (!leads.length) {
+    wrap.innerHTML = '<div class="leads-empty">📭 אין לידים להצגה</div>';
+    return;
+  }
+
+  const rows = leads.map((lead, idx) => {
+    const date = new Date(lead.submittedAt).toLocaleDateString('he-IL', {
+      day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+
+    // Chips — leads are always contact/manual so keys are English (contact) or Hebrew (manual)
+    const LABEL_MAP = { name: 'שם', phone: 'טלפון', message: 'הודעה' };
+    const chips = Object.entries(lead.answers || {})
+      .slice(0, 4)
+      .map(([k, v]) => {
+        if (!v) return '';
+        const label = LABEL_MAP[k] || k;
+        return `<span class="lead-chip"><strong>${esc(String(label).slice(0,14))}</strong>: ${esc(String(v).slice(0,30))}</span>`;
+      }).filter(Boolean).join('');
+
+    // Linked submissions badge
+    const linkedCount = (lead.linkedSubmissions || []).length;
+    const linkedBadge = linkedCount
+      ? `<span style="font-size:11px;background:rgba(200,169,110,.18);color:var(--dg);padding:1px 7px;border-radius:100px;font-weight:700;margin-right:4px;">📋 ${linkedCount}</span>`
+      : '';
+
+    // Link sent / response received status cell
+    let statusCellHtml = '<td style="text-align:center;">—</td>';
+    if (lead.responseReceivedAt) {
+      statusCellHtml = `<td style="text-align:center;">
+        <span class="lead-link-status received" title="התקבלה תשובה מהלקוח">✓</span>
+        <div style="font-size:10px;color:#2a7a4e;margin-top:3px;white-space:nowrap;">התקבלה תשובה</div>
+      </td>`;
+    } else if (lead.linkSentAt) {
+      statusCellHtml = `<td style="text-align:center;">
+        <span class="lead-link-status pending" title="ממתין לתשובת הלקוח">✓</span>
+        <div style="font-size:10px;color:#888;margin-top:3px;white-space:nowrap;">ממתין לתשובה</div>
+      </td>`;
+    }
+
+    const filesCollapseHtml = ''; // files now live inside linked sub-records
+
+    return `
+      <tr class="lead-main-row" id="lead-row-${idx}">
+        <td style="white-space:nowrap;color:#8a9ba8;font-size:12px;">${date}</td>
+        <td><span style="font-weight:600;color:var(--ocean);">${esc(lead.formTitle)}</span></td>
+        <td>
+          <div class="lead-answers-chips">${chips || '<span style="color:#ccc;font-size:12px;">אין נתונים</span>'}</div>
+          ${linkedBadge}
+        </td>
+        ${statusCellHtml}
+        <td style="width:1%;white-space:nowrap;">
+          <button class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);margin-left:4px;"
+            onclick="toggleLeadDetail(${idx})">🔍 פרטים</button>
+          <button class="btn btn-sm" style="background:rgba(28,58,74,.06);color:var(--ocean);margin-left:4px;"
+            onclick="openViewAllData(${idx})">📄 כל הנתונים</button>
+          <button class="btn-send-form" onclick="openSendFormModal(${idx})" style="margin-left:4px;">📋 שלח טופס</button>
+          <button class="btn-del-lead" onclick="deleteLead('${esc(lead.id)}',${idx})" title="מחק ליד">🗑</button>
+        </td>
+      </tr>
+      <tr class="lead-detail-row" id="lead-detail-${idx}" style="display:none;">
+        <td colspan="5">
+          <div class="lead-detail-inner">
+            ${buildLeadDetail(lead)}
+          </div>
+        </td>
+      </tr>
+      ${filesCollapseHtml}`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="sub-table">
+        <thead>
+          <tr>
+            <th>תאריך</th>
+            <th>טופס</th>
+            <th>נתונים</th>
+            <th style="width:90px;text-align:center;">סטטוס</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function buildLeadDetail(lead) {
+  const LABEL_MAP = { name: 'שם מלא', phone: 'טלפון', message: 'הודעה' };
+  const entries = Object.entries(lead.answers || {});
+
+  // Main lead fields
+  const fieldsHtml = entries.length
+    ? entries.map(([key, val]) => {
+        const label = LABEL_MAP[key] || key;
+        const display = Array.isArray(val) ? esc(val.join(', ')) : esc(String(val || '—'));
+        return `<div class="lead-detail-field">
+          <div class="lead-detail-label">${esc(label)}</div>
+          <div class="lead-detail-value">${display}</div>
+        </div>`;
+      }).join('')
+    : '<div style="color:#aaa;font-size:13px;padding:8px;">אין פרטי קשר</div>';
+
+  // Linked form submissions
+  const linked = lead.linkedSubmissions || [];
+  let linkedHtml = '';
+  if (linked.length) {
+    const cards = linked.map((sub, si) => {
+      const date = new Date(sub.submittedAt).toLocaleDateString('he-IL',
+        {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const qs   = (sub.formQuestions || []).filter(q => q.type !== 'page_break');
+      const qMap = {};
+      qs.forEach(q => { qMap['q_'+q.id] = q; });
+
+      const regularFields = [];
+      const fileFields    = [];
+      Object.entries(sub.answers || {}).forEach(([k, v]) => {
+        const q = qMap[k];
+        if (!v || (Array.isArray(v) && !v.length)) return;
+        if (q?.type === 'file') {
+          fileFields.push({ label: q?.label || k, val: v });
+        } else {
+          const display = Array.isArray(v) ? v.join(', ') : String(v);
+          regularFields.push(`<div class="linked-sub-field">
+            <div class="linked-sub-field-label">${esc(q?.label || k)}</div>
+            <div class="linked-sub-field-value">${esc(display)}</div>
+          </div>`);
+        }
+      });
+
+      const filesHtml = fileFields.map(({label, val}) => {
+        try {
+          const f = JSON.parse(val);
+          return `<div class="lead-file-row">
+            <span style="font-size:16px;">📎</span>
+            <span class="lead-file-label">${esc(label)}</span>
+            <span class="lead-file-name">${esc(f.name)}</span>
+            <a href="${esc(f.url)}" download target="_blank" class="lead-file-dl">⬇ הורד</a>
+          </div>`;
+        } catch { return ''; }
+      }).filter(Boolean).join('');
+
+      const uid = `lsub_${lead.id}_${si}`;
+      return `<div class="linked-sub-card">
+        <div class="linked-sub-header" onclick="toggleLinkedSub('${uid}')">
+          <span style="font-size:16px;">📋</span>
+          <span class="linked-sub-form-title">${esc(sub.formTitle)}</span>
+          <span class="linked-sub-date">${date}</span>
+          <span class="linked-sub-toggle" id="tog_${uid}">▼</span>
+        </div>
+        <div class="linked-sub-body" id="${uid}">
+          ${regularFields.length ? `<div class="linked-sub-fields">${regularFields.join('')}</div>` : ''}
+          ${filesHtml ? `<div class="linked-sub-files" style="margin-top:${regularFields.length?'10px':'0'}">${filesHtml}</div>` : ''}
+          ${!regularFields.length && !filesHtml ? '<div style="color:#aaa;font-size:13px;">אין נתונים</div>' : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    linkedHtml = `<div class="linked-subs-section">
+      <div class="linked-subs-title">
+        📋 טפסים שהוגשו
+        <span style="background:rgba(200,169,110,.2);color:var(--dg);padding:1px 8px;border-radius:100px;font-size:11px;">${linked.length}</span>
+      </div>
+      ${cards}
+    </div>`;
+  }
+
+  return fieldsHtml + linkedHtml;
+}
+
+function toggleLinkedSub(uid) {
+  const body = document.getElementById(uid);
+  const tog  = document.getElementById('tog_' + uid);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (tog) tog.classList.toggle('open', open);
+}
+
+function toggleLeadDetail(idx) {
+  const detailRow = document.getElementById('lead-detail-'+idx);
+  const mainRow   = document.getElementById('lead-row-'+idx);
+  const isOpen    = detailRow.style.display !== 'none';
+  detailRow.style.display = isOpen ? 'none' : '';
+  mainRow.classList.toggle('lead-row-expanded', !isOpen);
+}
+
+/* ════════════════════════════════════════
+   ADD LEAD MANUALLY
+════════════════════════════════════════ */
+
+function openAddLeadModal() {
+  // reset fields
+  ['alm-name','alm-phone','alm-email','alm-source','alm-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('almExtraFields').innerHTML = '';
+  document.getElementById('addLeadModal').classList.add('open');
+  setTimeout(() => document.getElementById('alm-name').focus(), 100);
+}
+
+function closeAddLeadModal() {
+  document.getElementById('addLeadModal').classList.remove('open');
+}
+
+function almAddField() {
+  const list = document.getElementById('almExtraFields');
+  const idx  = list.children.length;
+  const row  = document.createElement('div');
+  row.className = 'alm-extra-row';
+  row.innerHTML = `
+    <input type="text" class="alm-input" placeholder="שם שדה" data-extra-key="${idx}" />
+    <input type="text" class="alm-input" placeholder="ערך" data-extra-val="${idx}" />
+    <button class="btn-icon btn-icon-del" onclick="this.closest('.alm-extra-row').remove()">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('[data-extra-key]').focus();
+}
+
+async function saveManualLead() {
+  const name   = document.getElementById('alm-name').value.trim();
+  const phone  = document.getElementById('alm-phone').value.trim();
+  const email  = document.getElementById('alm-email').value.trim();
+  const source = document.getElementById('alm-source').value.trim();
+  const notes  = document.getElementById('alm-notes').value.trim();
+
+  if (!name && !phone) {
+    showToast('יש למלא לפחות שם או טלפון', 'error'); return;
+  }
+
+  const answers = {};
+  if (name)   answers['שם מלא']  = name;
+  if (phone)  answers['טלפון']   = phone;
+  if (email)  answers['אימייל']  = email;
+  if (source) answers['מקור']    = source;
+  if (notes)  answers['הערות']   = notes;
+
+  // extra fields
+  document.querySelectorAll('#almExtraFields .alm-extra-row').forEach(row => {
+    const k = row.querySelector('[data-extra-key]').value.trim();
+    const v = row.querySelector('[data-extra-val]').value.trim();
+    if (k && v) answers[k] = v;
+  });
+
+  try {
+    const res  = await apiFetch('/api/leads/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    closeAddLeadModal();
+    showToast('הליד נשמר בהצלחה ✓');
+    await loadLeads();
+  } catch(e) { showToast('שגיאה: ' + e.message, 'error'); }
+}
+
+function openSendFormModal(leadIdx) {
+  const modal = document.getElementById('sendFormModal');
+  const list  = document.getElementById('sfmList');
+  modal.classList.add('open');
+
+  // Build prefill map: label → value from lead answers
+  const lead = _allLeads[leadIdx];
+  const prefill = {};
+  if (lead) {
+    const qs = lead.formQuestions || [];
+    const LANDING_LABELS = { name: 'שם מלא', phone: 'טלפון', message: 'הודעה' };
+    if (qs.length) {
+      qs.forEach(q => {
+        const v = lead.answers?.['q_' + q.id];
+        if (v && q.label) prefill[q.label] = Array.isArray(v) ? v.join(', ') : String(v);
+      });
+    } else {
+      // landing page contact
+      Object.entries(lead.answers || {}).forEach(([k, v]) => {
+        if (v && LANDING_LABELS[k]) prefill[LANDING_LABELS[k]] = String(v);
+      });
+    }
+  }
+
+  // Encode prefill as base64
+  const prefillB64 = Object.keys(prefill).length
+    ? encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(prefill)))))
+    : null;
+
+  // Store current lead id for mark-link-sent calls
+  window._sfmLeadId = lead?.id || null;
+
+  // Use allForms already loaded in memory (from the forms panel)
+  const forms = allForms || [];
+  if (!forms.length) {
+    list.innerHTML = '<div class="sfm-empty">אין טפסים — צור טופס קודם בלשונית הטפסים</div>';
+    return;
+  }
+
+  const origin = window.location.origin;
+  list.innerHTML = forms.map(f => {
+    // Build full URL with prefill + leadId so response can be correlated
+    const formUrl = new URL(`${origin}/form/${f.id}`);
+    if (prefillB64) formUrl.searchParams.set('prefill', decodeURIComponent(prefillB64));
+    if (lead?.id)  formUrl.searchParams.set('leadId', lead.id);
+    const url   = formUrl.toString();
+    const desc  = f.description ? `<div class="sfm-form-desc">${esc(f.description)}</div>` : '';
+    const badge = prefillB64 ? '<span style="font-size:10px;background:rgba(46,93,75,.15);color:var(--green);padding:2px 6px;border-radius:4px;font-weight:700;margin-right:6px;">✦ עם נתוני ליד</span>' : '';
+    const waMsg = encodeURIComponent(`שלום, הנה קישור לטופס שיעזור לנו להתקדם:\n${url}`);
+    const safeUrl = url.replace(/'/g,"\\'");
+    const fId    = f.id;
+    return `
+      <div class="sfm-form-item">
+        <div>
+          <div class="sfm-form-name">${badge}${esc(f.title)}</div>
+          ${desc}
+        </div>
+        <div class="sfm-form-actions">
+          <button class="sfm-btn sfm-btn-copy" onclick="sfmCopyLink('${safeUrl}',this,'${fId}')">📋 העתק קישור</button>
+          <button class="sfm-btn sfm-btn-wa" onclick="sfmMarkLinkSent('${fId}');window.open('https://wa.me/?text=${waMsg}','_blank')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:middle;margin-left:3px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.977-1.305A9.96 9.96 0 0 0 12.004 22C17.53 22 22 17.523 22 12S17.53 2 12.004 2zm0 18c-1.7 0-3.3-.453-4.676-1.238l-.336-.2-3.458.906.924-3.368-.22-.348A7.968 7.968 0 0 1 4 12c0-4.418 3.584-8 8.004-8C16.42 4 20 7.582 20 12s-3.582 8-7.996 8z"/></svg>
+            וואטסאפ
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function closeSendFormModal() {
+  document.getElementById('sendFormModal').classList.remove('open');
+}
+
+async function sfmCopyLink(url, btn, formId) {
+  // Always mark link as sent when button is clicked
+  sfmMarkLinkSent(formId);
+  // Copy to clipboard — with fallback for non-HTTPS / blocked contexts
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      // Fallback: create hidden textarea and execCommand
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+  } catch(e) {
+    // Last resort — show the URL so user can copy manually
+    prompt('העתק את הקישור:', url);
+    return;
+  }
+  const orig = btn.textContent;
+  btn.textContent = '✓ הועתק!';
+  btn.style.background = 'rgba(46,93,75,.15)';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+}
+
+function sfmMarkLinkSent(formId) {
+  const leadId = window._sfmLeadId;
+  if (!leadId) return;
+  apiFetch(`/api/leads/${leadId}/link-sent`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ formId: formId || '' })
+  }).then(() => loadLeads()).catch(() => {});
+}
+
+function toggleLeadFiles(idx) {
+  const row = document.getElementById('lead-files-' + idx);
+  if (!row) return;
+  row.style.display = row.style.display !== 'none' ? 'none' : '';
+}
+
+function openViewAllData(leadIdx) {
+  const lead = _allLeads[leadIdx];
+  if (!lead) return;
+  const modal = document.getElementById('viewAllModal');
+  document.getElementById('vamTitle').textContent = `נתוני ליד — ${lead.formTitle}`;
+  const date = new Date(lead.submittedAt).toLocaleDateString('he-IL',
+    {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  let subLine = `נשלח: ${date}`;
+  if (lead.linkSentAt) subLine += lead.responseReceivedAt
+    ? ' · ✅ התקבלה תשובה'
+    : ' · ⏳ ממתין לתשובה';
+  document.getElementById('vamSub').textContent = subLine;
+
+  const qs = lead.formQuestions || [];
+  const qMap = {};
+  qs.forEach(q => { qMap['q_'+q.id] = q; });
+  const LABEL_MAP = { name: 'שם מלא', phone: 'טלפון', message: 'הודעה' };
+
+  const regular = [];
+  const files   = [];
+
+  Object.entries(lead.answers || {}).forEach(([key, val]) => {
+    const q = qMap[key];
+    const label = q?.label || LABEL_MAP[key] || key;
+    if (q?.type === 'file') {
+      files.push({ label, val });
+    } else {
+      const display = Array.isArray(val) ? val.join(', ') : String(val || '—');
+      regular.push(`<div class="vam-field"><div class="vam-label">${esc(label)}</div><div class="vam-value">${esc(display)}</div></div>`);
+    }
+  });
+
+  let filesHtml = '';
+  if (files.length) {
+    const items = files.map(({label, val}) => {
+      try {
+        const f = JSON.parse(val);
+        return `<div class="vam-file-item">
+          <span style="font-size:20px;">📎</span>
+          <div style="flex:1;overflow:hidden;">
+            <div style="font-size:11px;font-weight:700;color:#7040b0;text-transform:uppercase;letter-spacing:.05em;">${esc(label)}</div>
+            <div class="vam-file-name">${esc(f.name)}</div>
+          </div>
+          <a href="${esc(f.url)}" download target="_blank" class="vam-file-dl">⬇ הורד</a>
+        </div>`;
+      } catch { return ''; }
+    }).filter(Boolean);
+    if (items.length) {
+      filesHtml = `<div class="vam-files-section">
+        <div class="vam-files-title">📎 קבצים מצורפים (${items.length})</div>
+        ${items.join('')}
+      </div>`;
+    }
+  }
+
+  document.getElementById('vamContent').innerHTML =
+    (regular.join('') + filesHtml) ||
+    '<div style="color:#aaa;font-size:13px;padding:8px 0;">אין נתונים לליד זה</div>';
+
+  modal.classList.add('open');
+}
+
+function closeViewAllModal() {
+  document.getElementById('viewAllModal').classList.remove('open');
+}
+
+async function deleteLead(leadId, idx) {
+  if (!confirm('למחוק את הליד?')) return;
+  try {
+    const res = await apiFetch('/api/leads/'+leadId, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.ok) {
+      _allLeads = _allLeads.filter(l => l.id !== leadId);
+      filterLeads();
+      showToast('הליד נמחק ✓');
+    } else showToast('שגיאה: ' + data.error, 'error');
+  } catch { showToast('שגיאה במחיקה', 'error'); }
+}
+
+/* ════════════════════════════════════════
+   EMAIL SEND FEATURE
+════════════════════════════════════════ */
+
+let _detailSubs = [];
+let _detailQs   = [];
+const _selectedFields = {}; // { formId: Set<qId> }
+
+function getSelectedFields(fid) {
+  if (!_selectedFields[fid]) _selectedFields[fid] = new Set();
+  return _selectedFields[fid];
+}
+
+function toggleFieldSelectPanel(fid) {
+  const cbs = document.getElementById(`fieldCbs-${fid}`);
+  if (!cbs) return;
+  const opening = !cbs.classList.contains('open');
+  cbs.classList.toggle('open', opening);
+  const btn = cbs.closest('.send-data-bar')?.querySelector('.btn-field-select');
+  if (btn) btn.classList.toggle('active', opening || getSelectedFields(fid).size > 0);
+}
+
+function onFieldCheck(fid, qId, checked) {
+  const sel = getSelectedFields(fid);
+  if (checked) sel.add(qId); else sel.delete(qId);
+  const wrap = document.getElementById(`subsWrap-${fid}`);
+  if (wrap) wrap.classList.toggle('subs-has-selection', sel.size > 0);
+  // update badge on button
+  const bar = wrap?.previousElementSibling;
+  const btn = bar?.querySelector('.btn-field-select');
+  if (btn) {
+    const badge = btn.querySelector('.send-count-badge');
+    if (sel.size > 0) {
+      if (badge) badge.textContent = sel.size;
+      else btn.insertAdjacentHTML('beforeend', ` <span class="send-count-badge">${sel.size}</span>`);
+      btn.classList.add('active');
+    } else {
+      badge?.remove();
+      btn.classList.remove('active');
+    }
+  }
+}
+
+function openSendModal(idx) {
+  const sub = _detailSubs[idx];
+  if (!sub) return;
+  const fid  = detailFormId;
+  const form = allForms.find(f => f.id === fid);
+
+  // Use questions marked sendData=true in form editor
+  const selectedQs = _detailQs.filter(q => q.sendData);
+  const fields = selectedQs.map(q => {
+    const v = sub.answers[`q_${q.id}`];
+    let ans = '—';
+    if (v) {
+      if (q.type === 'file') {
+        try { const f = JSON.parse(v); ans = `[קובץ] ${f.name}`; } catch { ans = v; }
+      } else {
+        ans = Array.isArray(v) ? v.join(', ') : v;
+      }
+    }
+    return { question: q.label || q.id, answer: ans };
+  });
+
+  // Store for sending
+  window._emailPayload = { fields, formTitle: form?.title || 'טופס', submittedAt: sub.submittedAt };
+
+  // Build preview
+  const rows = fields.map(f => `
+    <div class="email-preview-row">
+      <div class="email-preview-q">${esc(f.question)}</div>
+      <div class="email-preview-a">${esc(f.answer)}</div>
+    </div>`).join('');
+
+  document.getElementById('emailPreview').innerHTML = `
+    <div class="email-preview-head">נתונים שישלחו</div>
+    ${rows || '<div class="email-no-fields">לא נבחרו שדות — בחר שדות ב"שליחת נתונים" תחילה</div>'}`;
+
+  document.getElementById('emailToInput').value = '';
+  document.getElementById('emailStatus').textContent = '';
+  const btn = document.getElementById('btnSendEmail');
+  btn.disabled = !fields.length;
+  btn.textContent = 'שלח מייל ✉';
+
+  // Load saved config into settings fields
+  loadEmailCfgIntoForm();
+
+  document.getElementById('emailModal').classList.add('open');
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('open');
+  window._emailPayload = null;
+}
+// close on backdrop click
+document.getElementById('emailModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('emailModal')) closeEmailModal();
+});
+
+async function doSendLeadEmail() {
+  const payload = window._emailPayload;
+  if (!payload) return;
+  const toRaw = document.getElementById('emailToInput').value.trim();
+  if (!toRaw) {
+    document.getElementById('emailStatus').innerHTML = '<span style="color:var(--red)">יש להזין כתובת מייל</span>';
+    return;
+  }
+  const to = toRaw.split(',').map(e => e.trim()).filter(Boolean);
+  const btn = document.getElementById('btnSendEmail');
+  const status = document.getElementById('emailStatus');
+  btn.disabled = true;
+  btn.textContent = 'שולח...';
+  status.textContent = '';
+  try {
+    const res  = await apiFetch('/api/send-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to, ...payload })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      status.innerHTML = '<span style="color:var(--green)">✓ המייל נשלח בהצלחה!</span>';
+      btn.textContent = '✓ נשלח';
+      setTimeout(() => closeEmailModal(), 2000);
+    } else {
+      throw new Error(data.error || 'שגיאה לא ידועה');
+    }
+  } catch(e) {
+    status.innerHTML = `<span style="color:var(--red)">שגיאה: ${esc(e.message)}</span>`;
+    btn.disabled = false;
+    btn.textContent = 'שלח מייל ✉';
+  }
+}
+
+/* ── email SMTP settings ── */
+function toggleEmailCfg() {
+  document.getElementById('emailCfgFields').classList.toggle('open');
+}
+
+async function loadEmailCfgIntoForm() {
+  try {
+    const res = await apiFetch('/api/email-config');
+    const d   = await res.json();
+    if (d.configured) {
+      document.getElementById('cfgHost').value     = d.host || '';
+      document.getElementById('cfgPort').value     = d.port || '';
+      document.getElementById('cfgUser').value     = d.user || '';
+      document.getElementById('cfgFromName').value = d.fromName || '';
+    }
+  } catch {}
+}
+
+async function saveEmailCfg() {
+  const body = {
+    host:     document.getElementById('cfgHost').value.trim(),
+    port:     document.getElementById('cfgPort').value.trim(),
+    user:     document.getElementById('cfgUser').value.trim(),
+    pass:     document.getElementById('cfgPass').value.trim(),
+    fromName: document.getElementById('cfgFromName').value.trim()
+  };
+  const status = document.getElementById('cfgStatus');
+  status.textContent = 'שומר...';
+  try {
+    const res  = await apiFetch('/api/email-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    status.innerHTML = data.ok ? '<span style="color:var(--green)">✓ נשמר</span>' : '<span style="color:var(--red)">שגיאה</span>';
+  } catch {
+    status.innerHTML = '<span style="color:var(--red)">שגיאה בשמירה</span>';
+  }
+}
+
+</script>
+</body>
+</html>
