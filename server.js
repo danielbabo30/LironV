@@ -16,21 +16,25 @@ const EMAIL_CFG_FILE = path.join(__dirname, 'email-config.json');
 
 /* ── MongoDB connection ── */
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/liron';
-// FIX: never log the URI — it contains credentials
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('✓  MongoDB connected'))
-  .catch(e  => { console.error('✗  MongoDB connection failed:', e.message); process.exit(1); });
+let _mongoReady = false;
+function connectMongo() {
+  if (_mongoReady || mongoose.connection.readyState !== 0) return;
+  mongoose.connect(MONGO_URI)
+    .then(() => { _mongoReady = true; console.log('✓  MongoDB connected'); })
+    .catch(e  => console.error('✗  MongoDB connection failed:', e.message));
+}
+connectMongo();
 
 /* ── Admin auth ── */
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 if (!ADMIN_TOKEN) {
-  console.error('✗  ADMIN_TOKEN missing from .env — server will not start');
-  process.exit(1);
+  console.warn('⚠  ADMIN_TOKEN not set — admin endpoints will reject all requests');
 }
 // Middleware: protect all admin endpoints
 function requireAdmin(req, res, next) {
+  if (!ADMIN_TOKEN) return res.status(401).json({ ok: false, error: 'Unauthorized' });
   const header = req.headers['x-admin-token'] || '';
-  // constant-time comparison to prevent timing attacks
+  if (header.length === 0) return res.status(401).json({ ok: false, error: 'Unauthorized' });
   const provided = Buffer.from(header.padEnd(ADMIN_TOKEN.length));
   const expected  = Buffer.from(ADMIN_TOKEN);
   if (provided.length !== expected.length ||
