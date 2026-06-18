@@ -1054,10 +1054,17 @@ function onRadioChange(qId, val, pageIdx, hasBranching) {
   const pageQs = PAGES[pageIdx].questions;
   updateIntraPageBranches(qId, val, pageQs);
 
-  // Auto-advance: if this page has only this one radio question, advance automatically
-  const visibleQs = pageQs.filter(q => q.type !== 'page_break');
-  if (visibleQs.length === 1 && visibleQs[0].id === qId) {
+  // Auto-advance: after branching, if all OTHER questions on the page are hidden (or there are none)
+  const otherQs = pageQs.filter(q => q.id !== qId);
+  if (otherQs.length === 0) {
+    // Single-question page — always advance
     setTimeout(() => goNextPage(pageIdx), 350);
+  } else {
+    const allOthersHidden = otherQs.every(q => {
+      const el = document.querySelector(\`[data-branch-target="\${q.id}"]\`);
+      return el && el.style.display === 'none';
+    });
+    if (allOthersHidden) setTimeout(() => goNextPage(pageIdx), 350);
   }
 }
 
