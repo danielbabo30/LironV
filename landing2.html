@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" dir="rtl" lang="he">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>לירון | ייעוץ משכנתאות מקצועי</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-tertiary-container": "#91a0b7",
+        "on-error": "#ffffff",
+        "secondary-fixed-dim": "#e9c349",
+        "surface-container-low": "#f2f4f6",
+        "on-primary-fixed-variant": "#2d476f",
+        "on-surface-variant": "#43474e",
+        "inverse-primary": "#adc7f7",
+        "surface-variant": "#e0e3e5",
+        "secondary": "#735c00",
+        "tertiary-fixed-dim": "#b8c8e0",
+        "on-tertiary-fixed-variant": "#39485c",
+        "primary-fixed-dim": "#adc7f7",
+        "surface-container-high": "#e6e8ea",
+        "tertiary-fixed": "#d4e4fc",
+        "on-secondary-fixed": "#241a00",
+        "primary-container": "#1a365d",
+        "surface-container-highest": "#e0e3e5",
+        "inverse-surface": "#2d3133",
+        "error-container": "#ffdad6",
+        "tertiary": "#122234",
+        "on-primary-fixed": "#001b3c",
+        "on-secondary-container": "#745c00",
+        "outline-variant": "#c4c6cf",
+        "secondary-container": "#fed65b",
+        "inverse-on-surface": "#eff1f3",
+        "tertiary-container": "#28374a",
+        "surface-bright": "#f7f9fb",
+        "on-primary": "#ffffff",
+        "surface-container-lowest": "#ffffff",
+        "error": "#ba1a1a",
+        "on-background": "#191c1e",
+        "on-primary-container": "#86a0cd",
+        "surface-container": "#eceef0",
+        "surface-tint": "#455f88",
+        "on-tertiary": "#ffffff",
+        "primary-fixed": "#d6e3ff",
+        "on-secondary": "#ffffff",
+        "on-surface": "#191c1e",
+        "primary": "#002045",
+        "on-tertiary-fixed": "#0d1c2e",
+        "background": "#f7f9fb",
+        "on-secondary-fixed-variant": "#574500",
+        "outline": "#74777f",
+        "secondary-fixed": "#ffe088",
+        "surface-dim": "#d8dadc",
+        "on-error-container": "#93000a",
+        "surface": "#f7f9fb"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"
+      },
+      spacing: {
+        "container-max": "1200px", "margin-mobile": "16px",
+        "section-gap": "80px", "base": "8px", "gutter": "24px"
+      },
+      fontFamily: {
+        "body-lg": ["Rubik"], "display-lg-mobile": ["Rubik"],
+        "display-lg": ["Rubik"], "label-md": ["Rubik"], "caption": ["Rubik"],
+        "headline-md": ["Rubik"], "headline-sm": ["Rubik"], "body-md": ["Rubik"]
+      },
+      fontSize: {
+        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+        "display-lg-mobile": ["36px", {"lineHeight": "1.2", "fontWeight": "700"}],
+        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "label-md": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+        "caption": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+        "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+        "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Rubik', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .premium-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .gold-border-top { border-top: 4px solid #D4AF37; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  @keyframes floatUp {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+  }
+</style>
+</head>
+<body class="bg-background text-on-surface overflow-x-hidden">
+
+<!-- Header -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm h-20">
+  <nav class="flex justify-between items-center w-full px-margin-mobile md:px-gutter max-w-container-max mx-auto h-full">
+    <div id="lp-nav-logo" class="font-headline-md text-headline-md text-primary font-bold tracking-tight">לירון</div>
+    <div class="hidden md:flex items-center gap-8">
+      <a class="text-primary font-bold border-b-2 border-secondary" href="#">דף הבית</a>
+      <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="#about">אודות</a>
+      <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="#services">שירותים</a>
+      <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="#testimonials">המלצות</a>
+    </div>
+    <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})"
+      class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-bold active:scale-95 transition-transform hover:bg-primary/90">
+      קבעו שיחת ייעוץ
+    </button>
+  </nav>
+</header>
+
+<main class="mt-20">
+
+  <!-- Hero -->
+  <section style="position:relative; min-height:500px; overflow:hidden;">
+
+    <!-- Full-bleed photo — family pushed to right side -->
+    <img id="lp-hero-img" src="/uploads/hero-bg.png"
+         alt="משפחה מאושרת"
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:70% center;"/>
+
+
+    <!-- Badge top-LEFT (over family) -->
+    <div style="position:absolute;top:22px;left:24px;background:rgba(255,255,255,0.93);border-radius:14px;padding:9px 16px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);z-index:2;">
+      <div id="lp-badge1-text" style="font-weight:700;color:#1a2e4a;font-size:13px;">מעל 5,000</div>
+      <div id="lp-badge1-sub" style="color:#777;font-size:11px;">לקוחות מרוצים</div>
+    </div>
+
+    <!-- Badge bottom-LEFT (over family, floating) -->
+    <div style="position:absolute;bottom:22px;left:24px;background:rgba(255,255,255,0.93);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:2;animation:floatUp 3s ease-in-out infinite;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E8D9A0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span class="material-symbols-outlined" style="color:#1a2e4a;font-size:19px;font-variation-settings:'FILL' 1;">verified</span>
+      </div>
+      <div style="text-align:right;">
+        <div id="lp-badge2-text" style="font-weight:700;color:#1a2e4a;font-size:13px;">מעל 5,000 לקוחות מרוצים</div>
+        <div id="lp-badge2-sub" style="color:#666;font-size:11px;">ליווי אישי לכל אורך הדרך</div>
+      </div>
+    </div>
+
+    <!-- Text block on RIGHT side -->
+    <div style="position:relative;z-index:1;min-height:500px;display:flex;align-items:center;justify-content:flex-end;padding:0 0 0 5%;max-width:1200px;margin:0 auto;">
+      <div style="max-width:460px;text-align:right;padding:3rem 0;">
+        <p id="lp-hero-pretitle" style="color:#1a2e4a;font-weight:700;font-size:16px;margin-bottom:10px;">הבית שלכם מתחיל כאן:</p>
+        <h1 style="font-family:'Rubik',sans-serif;font-size:clamp(30px,4vw,48px);font-weight:700;color:#1a2e4a;line-height:1.2;margin-bottom:16px;">
+          <span id="lp-hero-title">יעוץ משכנתאות חכם</span><br/><span id="lp-hero-highlight" style="color:#C9A84C;">ומותאם אישית</span>
+        </h1>
+        <p id="lp-hero-subtitle" style="color:#444;font-size:16px;line-height:1.75;margin-bottom:28px;max-width:400px;">
+          נגשים לכם את החלום לדירה עם ביטחון, חיסכון מקסימלי והליווי המקצועי ביותר בישראל.
+        </p>
+        <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})"
+          style="background:#1a2e4a;color:white;padding:14px 28px;border-radius:10px;font-family:'Rubik',sans-serif;font-size:17px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 18px rgba(26,46,74,0.3);transition:background 0.2s;">
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
+          <span id="lp-hero-cta">קבלו שיחת ייעוץ חינם</span>
+        </button>
+      </div>
+    </div>
+
+    <span id="savingsCounter" class="hidden">0</span>
+  </section>
+
+  <!-- Value Props -->
+  <section class="bg-surface-container-low py-section-gap">
+    <div class="max-w-container-max mx-auto px-gutter">
+      <div class="text-center mb-12 space-y-4">
+        <h2 id="lp-services-title" class="font-headline-md text-headline-md text-primary">למה לבחור בלירון?</h2>
+        <div class="w-20 h-1.5 bg-secondary mx-auto rounded-full"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <div class="group p-8 rounded-2xl bg-white border border-outline-variant/30 hover:border-secondary transition-all hover:shadow-xl text-center space-y-4">
+          <div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center mx-auto text-primary-container group-hover:bg-primary-container group-hover:text-white transition-all">
+            <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">workspace_premium</span>
+          </div>
+          <h3 id="lp-srv1-title" class="font-headline-sm text-headline-sm text-primary">ניסיון ומקצועיות</h3>
+          <p id="lp-srv1-text" class="font-body-md text-body-md text-on-surface-variant">יוצאת מערכת הבנקאות עם הבנה עמוקה של כל מסלולי המימון והדרך שבה הבנקים חושבים.</p>
+        </div>
+        <div class="group p-8 rounded-2xl bg-white border border-outline-variant/30 hover:border-secondary transition-all hover:shadow-xl text-center space-y-4">
+          <div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center mx-auto text-primary-container group-hover:bg-primary-container group-hover:text-white transition-all">
+            <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">visibility</span>
+          </div>
+          <h3 id="lp-srv2-title" class="font-headline-sm text-headline-sm text-primary">שקיפות מלאה</h3>
+          <p id="lp-srv2-text" class="font-body-md text-body-md text-on-surface-variant">כל נתון, ריבית ועמלה מוצגים לכם בגובה העיניים. ללא אותיות קטנות וללא הפתעות.</p>
+        </div>
+        <div class="group p-8 rounded-2xl bg-white border border-outline-variant/30 hover:border-secondary transition-all hover:shadow-xl text-center space-y-4">
+          <div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center mx-auto text-primary-container group-hover:bg-primary-container group-hover:text-white transition-all">
+            <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">savings</span>
+          </div>
+          <h3 id="lp-srv3-title" class="font-headline-sm text-headline-sm text-primary">חיסכון מקסימלי</h3>
+          <p id="lp-srv3-text" class="font-body-md text-body-md text-on-surface-variant">כוח המיקוח שלנו מול הבנקים מבטיח לכם את התנאים הטובים ביותר שניתן להשיג.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="py-section-gap bg-surface overflow-hidden" id="about">
+    <div class="max-w-container-max mx-auto px-gutter">
+      <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+        <div class="w-full md:w-2/5 relative">
+          <div class="absolute inset-0 bg-secondary-fixed/20 rounded-3xl rotate-2 scale-105 blur-xl -z-10"></div>
+          <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-square bg-primary-container/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-9xl text-primary-container/40">person</span>
+          </div>
+        </div>
+        <div class="w-full md:w-3/5 text-right space-y-5">
+          <h2 id="lp-about-title" class="font-headline-md text-headline-md text-primary">קצת עלי</h2>
+          <div class="w-16 h-1 bg-secondary rounded-full"></div>
+          <p id="lp-about-p1" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            עם מעל ל-15 שנות ניסיון עמוק בתוך המערכת הבנקאית, אני מביאה איתי ידע מקצועי רחב והבנה מעמיקה של הדרך בה הבנקים חושבים ופועלים.
+          </p>
+          <p id="lp-about-p2" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            הגישה שלי מבוססת על יחס אישי, שקיפות מלאה ומחויבות בלתי מתפשרת למציאת תמהיל המשכנתא האופטימלי עבור כל משפחה.
+          </p>
+          <div class="pt-2">
+            <button onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})"
+              class="border-2 border-primary text-primary px-8 py-3 rounded-lg font-bold hover:bg-primary hover:text-white transition-all">
+              קביעת פגישת היכרות
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="py-section-gap bg-surface-container-low" id="services">
+    <div class="max-w-container-max mx-auto px-gutter">
+      <div class="text-right mb-10 space-y-2">
+        <h2 id="lp-mysvr-title" class="font-headline-md text-headline-md text-primary">השירותים שלי</h2>
+        <p id="lp-mysvr-sub" class="font-body-lg text-body-lg text-on-surface-variant">פתרונות מימון מותאמים אישית לכל שלב בחיים</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-outline-variant/50 group gold-border-top">
+          <div class="h-44 bg-primary-container/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-7xl text-primary-container/50 group-hover:scale-110 transition-transform duration-500">home</span>
+          </div>
+          <div class="p-6 text-right">
+            <h4 id="lp-mysvr1-title" class="font-headline-sm text-headline-sm text-primary mb-2">משכנתא חדשה</h4>
+            <p id="lp-mysvr1-text" class="text-on-surface-variant font-body-md mb-5">ליווי מאפס ועד החתימה, כולל אישור עקרוני וניהול מו"מ מול כל הבנקים.</p>
+            <a class="text-secondary font-bold flex flex-row-reverse items-center gap-1 hover:gap-2 transition-all" href="#contact">
+              לפרטים נוספים <span class="material-symbols-outlined text-sm">arrow_back</span>
+            </a>
+          </div>
+          <div class="absolute top-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold">הכי פופולרי</div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-outline-variant/50 group">
+          <div class="h-44 bg-secondary-container/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-7xl text-secondary/40 group-hover:scale-110 transition-transform duration-500">autorenew</span>
+          </div>
+          <div class="p-6 text-right">
+            <h4 id="lp-mysvr2-title" class="font-headline-sm text-headline-sm text-primary mb-2">מחזור משכנתא</h4>
+            <p id="lp-mysvr2-text" class="text-on-surface-variant font-body-md mb-5">בדיקה ללא עלות של המשכנתא הקיימת והפחתת ההחזר החודשי משמעותית.</p>
+            <a class="text-secondary font-bold flex flex-row-reverse items-center gap-1 hover:gap-2 transition-all" href="#contact">
+              לפרטים נוספים <span class="material-symbols-outlined text-sm">arrow_back</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-2xl bg-white shadow-sm border border-outline-variant/50 group">
+          <div class="h-44 bg-primary-container/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-7xl text-primary-container/40 group-hover:scale-110 transition-transform duration-500">payments</span>
+          </div>
+          <div class="p-6 text-right">
+            <h4 id="lp-mysvr3-title" class="font-headline-sm text-headline-sm text-primary mb-2">הלוואה לכל מטרה</h4>
+            <p id="lp-mysvr3-text" class="text-on-surface-variant font-body-md mb-5">שימוש בנכס הקיים כבטוחה לקבלת מימון בתנאים המועדפים ביותר.</p>
+            <a class="text-secondary font-bold flex flex-row-reverse items-center gap-1 hover:gap-2 transition-all" href="#contact">
+              לפרטים נוספים <span class="material-symbols-outlined text-sm">arrow_back</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="bg-primary text-white py-section-gap overflow-hidden relative" id="testimonials">
+    <div class="max-w-container-max mx-auto px-gutter relative z-10">
+      <div class="text-center mb-12">
+        <h2 class="font-headline-md text-headline-md text-secondary-container">מה הלקוחות שלי אומרים?</h2>
+      </div>
+      <!-- Carousel -->
+      <div class="relative">
+        <div class="overflow-hidden" id="carouselTrack">
+          <div class="flex transition-transform duration-500 ease-in-out" id="carouselSlides">
+            <!-- כרטיס 1 -->
+            <div class="min-w-full px-4">
+              <div class="max-w-xl mx-auto bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-right">
+                <div class="flex flex-row-reverse items-center gap-4 mb-4">
+                  <div id="lp-testi1-initial" class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">ד</div>
+                  <div>
+                    <div id="lp-testi1-name" class="font-bold">דוד כהן</div>
+                    <div id="lp-testi1-sub" class="text-caption text-white/60">חולון | רכישת דירה ראשונה</div>
+                    <div class="flex flex-row-reverse gap-0.5 mt-1">
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                    </div>
+                  </div>
+                </div>
+                <p id="lp-testi1-text" class="font-body-md text-body-md opacity-90 italic">"חסכו לנו למעלה מ-150,000 ש"ח! מקצועיות נדירה ושירות אישי ומסור. ממליץ בחום לכל מי שיש לו משכנתא."</p>
+              </div>
+            </div>
+            <!-- כרטיס 2 -->
+            <div class="min-w-full px-4">
+              <div class="max-w-xl mx-auto bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-right">
+                <div class="flex flex-row-reverse items-center gap-4 mb-4">
+                  <div id="lp-testi2-initial" class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">מ</div>
+                  <div>
+                    <div id="lp-testi2-name" class="font-bold">מירב לוי</div>
+                    <div id="lp-testi2-sub" class="text-caption text-white/60">רמת גן | מיחזור משכנתא</div>
+                    <div class="flex flex-row-reverse gap-0.5 mt-1">
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                    </div>
+                  </div>
+                </div>
+                <p id="lp-testi2-text" class="font-body-md text-body-md opacity-90 italic">"הצלחנו להקטין את ההחזר החודשי ב-1,200 ש"ח. זה ממש אוויר לנשימה עבור המשפחה שלנו. מהירות, מקצועיות ויחס אישי."</p>
+              </div>
+            </div>
+            <!-- כרטיס 3 -->
+            <div class="min-w-full px-4">
+              <div class="max-w-xl mx-auto bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-right">
+                <div class="flex flex-row-reverse items-center gap-4 mb-4">
+                  <div id="lp-testi3-initial" class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">א</div>
+                  <div>
+                    <div id="lp-testi3-name" class="font-bold">אבי מזרחי</div>
+                    <div id="lp-testi3-sub" class="text-caption text-white/60">נתניה | הלוואה לכל מטרה</div>
+                    <div class="flex flex-row-reverse gap-0.5 mt-1">
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-sm text-secondary-container" style="font-variation-settings:'FILL' 1;">star</span>
+                    </div>
+                  </div>
+                </div>
+                <p id="lp-testi3-text" class="font-body-md text-body-md opacity-90 italic">"תהליך חלק ופשוט. הצוות טיפל בכל הבירוקרטיה מול הבנקים והשיג לי ריבית שלא חלמתי עליה. חסכו לי המון זמן."</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- כפתורי ניווט -->
+        <div class="flex justify-center items-center gap-6 mt-8">
+          <button onclick="carouselPrev()" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-white">chevron_right</span>
+          </button>
+          <div class="flex gap-2" id="carouselDots"></div>
+          <button onclick="carouselNext()" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-white">chevron_left</span>
+          </button>
+        </div>
+      </div>
+      <script>
+        (function(){
+          var current = 0;
+          var total = 3;
+          var slides = document.getElementById('carouselSlides');
+          var dotsContainer = document.getElementById('carouselDots');
+          for(var i=0;i<total;i++){
+            var d=document.createElement('button');
+            d.className='w-2.5 h-2.5 rounded-full transition-colors '+(i===0?'bg-secondary-container':'bg-white/30');
+            d.setAttribute('data-idx',i);
+            d.onclick=(function(idx){return function(){goTo(idx);};})(i);
+            dotsContainer.appendChild(d);
+          }
+          function goTo(idx){
+            current=idx;
+            slides.style.transform='translateX('+(idx*100)+'%)';
+            dotsContainer.querySelectorAll('button').forEach(function(d,i){
+              d.className='w-2.5 h-2.5 rounded-full transition-colors '+(i===idx?'bg-secondary-container':'bg-white/30');
+            });
+          }
+          window.carouselNext=function(){goTo((current+1)%total);};
+          window.carouselPrev=function(){goTo((current-1+total)%total);};
+          // Auto-advance every 5s
+          setInterval(function(){window.carouselNext();},5000);
+        })();
+      </script>
+    </div>
+  </section>
+
+  <!-- Contact Form -->
+  <section class="py-section-gap relative overflow-hidden" id="contact">
+    <div class="absolute inset-0 -z-10 opacity-5">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-0 w-96 h-96 bg-secondary rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-container-max mx-auto px-gutter">
+      <div class="bg-primary-container rounded-3xl p-8 md:p-14 flex flex-col md:flex-row items-center gap-12 shadow-2xl">
+        <div class="w-full md:w-1/2 text-right text-white space-y-5">
+          <h2 id="lp-contact-title" class="font-headline-md text-headline-md leading-tight">אל תתחייבו לבנק לפני שתדברו איתי</h2>
+          <p id="lp-contact-sub" class="text-on-primary-container font-body-lg">השאירו פרטים עכשיו וקבלו שיחת ייעוץ ראשונית ללא התחייבות. נבדוק ביחד כמה אתם יכולים לחסוך.</p>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 justify-start">
+              <span id="lp-contact-b1">בדיקה ראשונית ללא עלות</span>
+              <span class="material-symbols-outlined text-secondary-fixed">check_circle</span>
+            </li>
+            <li class="flex items-center gap-3 justify-start">
+              <span id="lp-contact-b2">תכנון תמהיל מותאם אישית</span>
+              <span class="material-symbols-outlined text-secondary-fixed">check_circle</span>
+            </li>
+            <li class="flex items-center gap-3 justify-start">
+              <span id="lp-contact-b3">חיסכון מוכח בריביות ובזמן</span>
+              <span class="material-symbols-outlined text-secondary-fixed">check_circle</span>
+            </li>
+          </ul>
+        </div>
+        <div class="w-full md:w-1/2 bg-white rounded-2xl p-8 shadow-xl">
+          <form id="contactForm" class="space-y-5">
+            <div class="space-y-1.5 text-right">
+              <label class="font-label-md text-label-md text-primary block">שם מלא</label>
+              <input class="w-full p-4 rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-right" placeholder="ישראל ישראלי" type="text" required/>
+            </div>
+            <div class="space-y-1.5 text-right">
+              <label class="font-label-md text-label-md text-primary block">מספר טלפון</label>
+              <input class="w-full p-4 rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-right" dir="ltr" placeholder="050-0000000" type="tel" required/>
+            </div>
+            <button class="w-full bg-secondary-fixed-dim hover:bg-secondary-fixed text-primary py-4 rounded-xl font-bold text-headline-sm transition-all shadow-md active:scale-95" type="submit">
+              שלחו עכשיו
+            </button>
+            <p class="text-caption text-center text-on-surface-variant flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-xs">lock</span>
+              הפרטים שלכם מאובטחים ולא יועברו לצד שלישי
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-tertiary w-full">
+  <div class="flex flex-col md:flex-row-reverse justify-between items-center w-full px-margin-mobile md:px-gutter py-10 max-w-container-max mx-auto gap-base">
+    <div class="font-headline-sm text-headline-sm font-bold text-on-tertiary">לירון</div>
+    <div class="flex flex-wrap justify-center gap-6">
+      <a class="text-on-tertiary/80 font-body-md hover:text-secondary-fixed transition-colors" href="#">דף הבית</a>
+      <a class="text-on-tertiary/80 font-body-md hover:text-secondary-fixed transition-colors" href="#about">אודותי</a>
+      <a class="text-on-tertiary/80 font-body-md hover:text-secondary-fixed transition-colors" href="#services">שירותים</a>
+      <a class="text-on-tertiary/80 font-body-md hover:text-secondary-fixed transition-colors" href="#testimonials">המלצות</a>
+      <a class="text-on-tertiary/80 font-body-md hover:text-secondary-fixed transition-colors" href="#">הצהרת נגישות</a>
+    </div>
+    <p class="text-on-tertiary/60 font-caption text-caption">© 2024 לירון - ייעוץ משכנתאות. כל הזכויות שמורות.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  fetch('/api/content').then(function(r){return r.json();}).then(function(c){
+    if(!c||!Object.keys(c).length) return;
+    function t(id,val){ var el=document.getElementById(id); if(el&&val) el.textContent=val; }
+    function img(id,url){ var el=document.getElementById(id); if(el&&url) el.src=url; }
+    // Nav logo
+    var logo=document.getElementById('lp-nav-logo');
+    if(logo){
+      if(c.nav&&c.nav.logoImage){
+        logo.innerHTML='<img src="'+c.nav.logoImage+'" style="height:40px;object-fit:contain;" />';
+      } else if(c.nav&&c.nav.logoText){
+        logo.textContent=c.nav.logoText;
+      }
+    }
+    // Hero
+    if(c.hero){
+      img('lp-hero-img', c.hero.bgImage);
+      t('lp-hero-pretitle', c.hero.preTitle);
+      t('lp-hero-title',    c.hero.title);
+      t('lp-hero-highlight',c.hero.highlight);
+      t('lp-hero-subtitle', c.hero.subtitle);
+      t('lp-hero-cta',      c.hero.ctaText);
+      t('lp-badge1-text',   c.hero.badge1Text);
+      t('lp-badge1-sub',    c.hero.badge1Sub);
+      t('lp-badge2-text',   c.hero.badge2Text);
+      t('lp-badge2-sub',    c.hero.badge2Sub);
+    }
+    // About
+    if(c.about){
+      t('lp-about-title', c.about.title);
+      t('lp-about-p1',    c.about.p1);
+      t('lp-about-p2',    c.about.p2);
+      var aImg=document.getElementById('lp-about-img');
+      if(aImg&&c.about.image){
+        aImg.parentElement.innerHTML='<img id="lp-about-img" src="'+c.about.image+'" style="width:100%;height:100%;object-fit:cover;" />';
+      }
+    }
+    // Contact
+    if(c.contact){
+      t('lp-contact-title', c.contact.title);
+      t('lp-contact-sub',   c.contact.sub);
+      t('lp-contact-b1',    c.contact.b1);
+      t('lp-contact-b2',    c.contact.b2);
+      t('lp-contact-b3',    c.contact.b3);
+    }
+    if(c.services){
+      t('lp-services-title', c.services.title);
+      t('lp-srv1-title', c.services.card1Title);
+      t('lp-srv1-text',  c.services.card1Text);
+      t('lp-srv2-title', c.services.card2Title);
+      t('lp-srv2-text',  c.services.card2Text);
+      t('lp-srv3-title', c.services.card3Title);
+      t('lp-srv3-text',  c.services.card3Text);
+    }
+    if(c.myServices){
+      t('lp-mysvr-title',  c.myServices.title);
+      t('lp-mysvr-sub',    c.myServices.sub);
+      t('lp-mysvr1-title', c.myServices.card1Title);
+      t('lp-mysvr1-text',  c.myServices.card1Text);
+      t('lp-mysvr2-title', c.myServices.card2Title);
+      t('lp-mysvr2-text',  c.myServices.card2Text);
+      t('lp-mysvr3-title', c.myServices.card3Title);
+      t('lp-mysvr3-text',  c.myServices.card3Text);
+    }
+    if(c.testimonials){
+      var ts = c.testimonials;
+      [1,2,3].forEach(function(i){
+        var tsi = ts['t'+i];
+        if(!tsi) return;
+        t('lp-testi'+i+'-name',    tsi.name);
+        t('lp-testi'+i+'-sub',     tsi.sub);
+        t('lp-testi'+i+'-text',    tsi.text);
+        t('lp-testi'+i+'-initial', tsi.initial || (tsi.name ? tsi.name[0] : ''));
+      });
+    }
+  }).catch(function(){});
+})();
+</script>
+
+<!-- WhatsApp FAB -->
+<a class="fixed bottom-6 left-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-40" href="https://wa.me/972500000000">
+  <svg fill="currentColor" height="28" width="28" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+    <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+  </svg>
+</a>
+
+<script>
+  // Counter animation
+  const counterEl = document.getElementById('savingsCounter');
+  const target = 120000;
+  const duration = 2000;
+  const startTime = performance.now();
+  function animateCounter(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.floor(eased * target);
+    counterEl.textContent = value.toLocaleString('he-IL');
+    if (progress < 1) requestAnimationFrame(animateCounter);
+  }
+  // Start when badge enters view
+  new IntersectionObserver((entries, obs) => {
+    if (entries[0].isIntersecting) {
+      requestAnimationFrame(animateCounter);
+      obs.disconnect();
+    }
+  }, { threshold: 0.5 }).observe(counterEl);
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('opacity-100','translate-y-0');
+        e.target.classList.remove('opacity-0','translate-y-10');
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('section').forEach(s => {
+    s.classList.add('transition-all','duration-700','opacity-0','translate-y-10');
+    observer.observe(s);
+  });
+
+  // Form submit
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    const origText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'שולח...'; }
+    const inputs = this.querySelectorAll('input');
+    const name  = inputs[0]?.value.trim() || '';
+    const phone = inputs[1]?.value.trim() || '';
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        this.innerHTML = '<div class="text-center py-8"><span class="material-symbols-outlined text-5xl text-secondary">check_circle</span><p class="font-headline-sm text-headline-sm text-primary mt-4">תודה רבה!</p><p class="text-on-surface-variant mt-2">פנייתכם התקבלה, ניצור איתכם קשר בהקדם.</p></div>';
+      } else {
+        if (btn) { btn.disabled = false; btn.textContent = origText; }
+        alert(data.error || 'אירעה שגיאה, נסה שוב');
+      }
+    } catch {
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+      alert('אירעה שגיאה, נסה שוב');
+    }
+  });
+</script>
+</body>
+</html>

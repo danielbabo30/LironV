@@ -275,6 +275,8 @@
     .sfm-btn-copy:hover { background:rgba(28,58,74,.15); }
     .sfm-btn-wa { background:#25D366;color:#fff; }
     .sfm-btn-wa:hover { background:#1da84e; }
+    .sfm-btn-new-form { background:rgba(200,169,110,.18);color:var(--dg);border:1px solid rgba(200,169,110,.4);font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:600;transition:background .15s; }
+    .sfm-btn-new-form:hover { background:rgba(200,169,110,.35); }
     .sfm-empty { text-align:center;padding:32px;color:#aaa;font-size:14px; }
     .sfm-close { position:absolute;top:14px;left:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;line-height:1; }
 
@@ -452,6 +454,32 @@
       border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Heebo', sans-serif;
     }
 
+    /* ── toast notifications ── */
+    #toast-container { position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none; }
+    .toast { display:flex;align-items:flex-start;gap:10px;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;max-width:420px;box-shadow:0 4px 20px rgba(0,0,0,.18);pointer-events:auto;animation:toastIn .25s ease; }
+    .toast-icon { font-size:18px;flex-shrink:0;margin-top:1px; }
+    .toast-body { display:flex;flex-direction:column;gap:2px; }
+    .toast-title { font-weight:700;font-size:13px; }
+    .toast-msg { font-size:12px;opacity:.85; }
+    .toast-error { background:#fff0f0;border:1.5px solid #f5c0c0;color:#8b0000; }
+    .toast-success { background:#f0fff6;border:1.5px solid #b0e8c8;color:#1a5c38; }
+    .toast-info { background:#f0f6ff;border:1.5px solid #b0ccf0;color:#1a3a6c; }
+    @keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── leads table ── */
+    .leads-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+    .leads-tbl thead th { padding:10px 14px; background:#f7f4ef; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#8a9ba5; border-bottom:1px solid #e2ddd6; white-space:nowrap; text-align:right; }
+    .leads-tbl tbody tr.lead-main-row { border-bottom:1px solid #f0ece6; transition:background .12s; }
+    .leads-tbl tbody tr.lead-main-row:hover { background:#faf9f6; }
+    .leads-tbl td { padding:12px 14px; vertical-align:middle; }
+    .status-badge { display:inline-block; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:700; white-space:nowrap; }
+    .status-new     { background:rgba(28,58,74,.08);    color:var(--ocean); }
+    .status-waiting { background:rgba(200,169,110,.18); color:var(--dg); }
+    .status-done    { background:rgba(46,93,75,.15);    color:var(--green); }
+    .btn-plus-detail { width:28px; height:28px; border-radius:50%; border:1.5px solid #d4cfc7; background:transparent; color:#888; font-size:18px; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:border-color .15s,color .15s,transform .15s; }
+    .btn-plus-detail:hover { border-color:var(--gold); color:var(--dg); transform:scale(1.1); }
+    .btn-plus-detail.open { background:var(--gold); border-color:var(--gold); color:#fff; transform:rotate(45deg); }
+
     /* ── lead link status icon ── */
     .lead-link-status {
       display:inline-flex; align-items:center; justify-content:center;
@@ -471,13 +499,25 @@
     .linked-sub-date { font-size:11px;color:#aaa;white-space:nowrap; }
     .linked-sub-toggle { font-size:12px;color:#bbb;transition:transform .2s; }
     .linked-sub-toggle.open { transform:rotate(180deg); }
-    .linked-sub-body { display:none;padding:10px 14px 14px;border-top:1px solid #f0ece6; }
-    .linked-sub-body.open { display:block; }
+    .linked-sub-body { display:none;border-top:1px solid #f0ece6; }
+    .linked-sub-body.open { display:block; max-height:420px; overflow-y:auto; }
+    .linked-sub-body-inner { padding:10px 14px 14px; }
     .linked-sub-fields { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px; }
-    .linked-sub-field { background:#faf9f6;border:1px solid #e8e3dc;border-radius:6px;padding:8px 12px; }
+    .linked-sub-field { background:#faf9f6;border:1px solid #e8e3dc;border-radius:6px;padding:8px 12px;position:relative; }
     .linked-sub-field-label { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#8a9ba8;margin-bottom:3px; }
     .linked-sub-field-value { font-size:13px;color:#1a2830;word-break:break-word; }
-    .linked-sub-files { margin-top:8px;display:flex;flex-direction:column;gap:6px; }
+    .field-report-cb { position:absolute;top:6px;left:6px;width:14px;height:14px;cursor:pointer;accent-color:var(--ocean); }
+    .linked-sub-files { margin-top:8px;display:flex;flex-direction:row;flex-wrap:wrap;gap:6px; }
+    .sub-section { margin-bottom:14px; }
+    .sub-section:last-child { margin-bottom:0; }
+    .sub-section-title { font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ocean);padding-bottom:6px;border-bottom:1.5px solid rgba(28,58,74,.12);margin-bottom:8px; }
+    .sub-status-select { font-size:11px;font-weight:700;padding:3px 8px;border-radius:100px;border:1.5px solid transparent;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 6px center;padding-left:20px; }
+    .sub-status-select.s-sent     { background-color:#e8f0fe;color:#1a56c4;border-color:#a8c4f8; }
+    .sub-status-select.s-pending  { background-color:#fff8e1;color:#8a6000;border-color:#f0d080; }
+    .sub-status-select.s-frozen   { background-color:#ede7f6;color:#5e35b1;border-color:#c5b3e8; }
+    .sub-status-select.s-rejected { background-color:#fdecea;color:#c0392b;border-color:#f5b0aa; }
+    .sub-status-select.s-cancelled{ background-color:#f5f5f5;color:#757575;border-color:#d0d0d0; }
+    .sub-status-select.s-approved { background-color:#e8f5e9;color:#2e7d32;border-color:#a5d6a7; }
 
     /* ── files collapse row ── */
     .lead-files-inner {
@@ -512,22 +552,39 @@
 <body>
 
 <!-- ═══ LOGIN OVERLAY ═══ -->
-<div id="loginOverlay" style="
-  display:none;position:fixed;inset:0;z-index:9999;
-  background:rgba(28,58,74,.92);backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:340px;box-shadow:0 24px 60px rgba(0,0,0,.25);text-align:center;">
-    <div style="font-size:32px;margin-bottom:12px;">🔐</div>
-    <div style="font-family:'Fraunces',serif;font-size:22px;color:#1C3A4A;margin-bottom:6px;">כניסה לממשק ניהול</div>
-    <div style="font-size:13px;color:#8a9ba5;margin-bottom:24px;">הזן את קוד הגישה להמשך</div>
-    <input id="loginTokenInput" type="password" placeholder="קוד גישה..."
-      style="width:100%;padding:12px 14px;border:1.5px solid #d8d3ca;border-radius:8px;
-             font-family:'Heebo',sans-serif;font-size:15px;text-align:center;direction:ltr;
-             margin-bottom:12px;outline:none;" />
-    <div id="loginError" style="display:none;color:#B8624C;font-size:13px;margin-bottom:10px;">קוד גישה שגוי</div>
-    <button id="loginBtn" style="width:100%;background:#1C3A4A;color:#fff;border:none;
-      padding:13px;border-radius:8px;font-family:'Heebo',sans-serif;font-size:15px;
-      font-weight:700;cursor:pointer;">כניסה</button>
+<div id="toast-container"></div>
+
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(28,58,74,.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:360px;box-shadow:0 24px 60px rgba(0,0,0,.25);text-align:right;">
+    <div style="font-size:32px;margin-bottom:12px;text-align:center;">🔐</div>
+    <div style="font-family:'Fraunces',serif;font-size:22px;color:#1C3A4A;margin-bottom:4px;text-align:center;">כניסה לממשק ניהול</div>
+    <div style="font-size:13px;color:#8a9ba5;margin-bottom:24px;text-align:center;">הזן אימייל וסיסמה להמשך</div>
+    <form id="loginForm" autocomplete="on" onsubmit="return false">
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#7a8e99;margin-bottom:5px;">אימייל</label>
+        <input id="loginEmail" type="email" name="email" autocomplete="username"
+          placeholder="user@example.com"
+          style="width:100%;padding:11px 13px;border:1.5px solid #d8d3ca;border-radius:8px;
+                 font-family:'Heebo',sans-serif;font-size:14px;direction:ltr;
+                 outline:none;box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#7a8e99;margin-bottom:5px;">סיסמה</label>
+        <input id="loginTokenInput" type="password" name="password" autocomplete="current-password"
+          placeholder="••••••••"
+          style="width:100%;padding:11px 13px;border:1.5px solid #d8d3ca;border-radius:8px;
+                 font-family:'Heebo',sans-serif;font-size:15px;direction:ltr;
+                 outline:none;box-sizing:border-box;" />
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin-bottom:14px;cursor:pointer;">
+        <input type="checkbox" id="rememberMe" style="width:15px;height:15px;cursor:pointer;" />
+        זכור אותי
+      </label>
+      <div id="loginError" style="display:none;color:#B8624C;font-size:13px;margin-bottom:10px;text-align:center;">אימייל או סיסמה שגויים</div>
+      <button id="loginBtn" type="submit" style="width:100%;background:#1C3A4A;color:#fff;border:none;
+        padding:13px;border-radius:8px;font-family:'Heebo',sans-serif;font-size:15px;
+        font-weight:700;cursor:pointer;">כניסה</button>
+    </form>
   </div>
 </div>
 
@@ -541,15 +598,13 @@
     </div>
     <div class="nav-section">סקשנים</div>
     <ul class="sidebar-nav">
-      <li><a href="#" class="active" data-panel="nav">    <span class="icon">🔗</span> ניווט</a></li>
-      <li><a href="#" data-panel="hero">                  <span class="icon">🏠</span> Hero</a></li>
-      <li><a href="#" data-panel="painSolution">          <span class="icon">⚡</span> כאב ← פתרון</a></li>
-      <li><a href="#" data-panel="process">               <span class="icon">📋</span> תהליך</a></li>
-      <li><a href="#" data-panel="specialties">           <span class="icon">⭐</span> התמחויות</a></li>
-      <li><a href="#" data-panel="about">                 <span class="icon">👤</span> אודות</a></li>
-      <li><a href="#" data-panel="testimonials">          <span class="icon">💬</span> המלצות</a></li>
-      <li><a href="#" data-panel="cta">                   <span class="icon">📨</span> CTA / יצירת קשר</a></li>
-      <li><a href="#" data-panel="footer">                <span class="icon">📄</span> Footer</a></li>
+      <li><a href="#" class="active" data-panel="nav">     <span class="icon">🔗</span> ניווט</a></li>
+      <li><a href="#" data-panel="hero">                   <span class="icon">🏠</span> Hero</a></li>
+      <li><a href="#" data-panel="services">               <span class="icon">⭐</span> למה אני?</a></li>
+      <li><a href="#" data-panel="myservices">             <span class="icon">🏦</span> השירותים שלי</a></li>
+      <li><a href="#" data-panel="about">                  <span class="icon">👤</span> אודות</a></li>
+      <li><a href="#" data-panel="testimonials">           <span class="icon">💬</span> המלצות</a></li>
+      <li><a href="#" data-panel="contact">                <span class="icon">📨</span> יצירת קשר</a></li>
     </ul>
     <div class="nav-section">כלים</div>
     <ul class="sidebar-nav">
@@ -578,9 +633,18 @@
         <div class="panel-title"><span class="icon">🔗</span> ניווט עליון</div>
         <div class="card">
           <div class="card-title">לוגו</div>
-          <div class="row-2">
-            <div class="field"><label>טקסט לוגו</label><input type="text" data-path="nav.logoText" /></div>
-            <div class="field"><label>טקסט לוגו (זהב/הדגשה)</label><input type="text" data-path="nav.logoAccent" /></div>
+          <div class="field">
+            <label>תמונת לוגו</label>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+              <div id="logoPreview" style="width:120px;height:48px;border:1.5px dashed #d4cfc8;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#faf9f6;">
+                <span style="font-size:11px;color:#bbb;">אין תמונה</span>
+              </div>
+              <label style="cursor:pointer;background:var(--ocean);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;">
+                העלה לוגו
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadLogo(this)" />
+              </label>
+              <button class="btn" style="background:rgba(184,98,76,.1);color:var(--red);font-size:12px;padding:6px 10px;" onclick="clearLogo()">הסר</button>
+            </div>
           </div>
           <div class="field"><label>טקסט כפתור CTA</label><input type="text" data-path="nav.ctaText" /></div>
         </div>
@@ -590,113 +654,62 @@
       <div class="section-panel" id="panel-hero">
         <div class="panel-title"><span class="icon">🏠</span> Hero</div>
         <div class="card">
-          <div class="card-title">טקסטים ראשיים</div>
-          <div class="field"><label>תגית עליונה (badge)</label><input type="text" data-path="hero.tag" /></div>
+          <div class="card-title">תמונת רקע</div>
+          <div class="field">
+            <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+              <div id="heroBgPreview" style="width:140px;height:70px;border:1.5px dashed #d4cfc8;border-radius:8px;overflow:hidden;background:#eee;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:11px;color:#bbb;">אין תמונה</span>
+              </div>
+              <label style="cursor:pointer;background:var(--ocean);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;">
+                העלה תמונה
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadHeroBg(this)" />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">טקסטים</div>
+          <div class="field"><label>תגית / pre-title</label><input type="text" data-path="hero.preTitle" /></div>
           <div class="row-2">
-            <div class="field"><label>שורת כותרת ראשונה</label><input type="text" data-path="hero.titleLine1" /></div>
-            <div class="field"><label>שורת כותרת שנייה (איטליק זהב)</label><input type="text" data-path="hero.titleItalic" /></div>
+            <div class="field"><label>כותרת ראשית</label><input type="text" data-path="hero.title" /></div>
+            <div class="field"><label>הדגשה (זהב, שורה שנייה)</label><input type="text" data-path="hero.highlight" /></div>
           </div>
           <div class="field"><label>תת-כותרת</label><textarea data-path="hero.subtitle"></textarea></div>
-          <div class="field"><label>טקסט כפתור CTA</label><input type="text" data-path="hero.ctaText" /></div>
+          <div class="field"><label>טקסט כפתור</label><input type="text" data-path="hero.ctaText" /></div>
         </div>
         <div class="card">
-          <div class="card-title">תגי אמון (מופרדים בפסיק)</div>
-          <div class="field"><label>פריט 1</label><input type="text" data-path="hero.trust.0" /></div>
-          <div class="field"><label>פריט 2</label><input type="text" data-path="hero.trust.1" /></div>
-          <div class="field"><label>פריט 3</label><input type="text" data-path="hero.trust.2" /></div>
-        </div>
-        <div class="card">
-          <div class="card-title">נתונים (צ'יפים)</div>
-          <div id="heroStats" class="stats-row"></div>
+          <div class="card-title">תגי סטטיסטיקה</div>
+          <div class="row-2">
+            <div class="field"><label>תג 1 — מספר</label><input type="text" data-path="hero.badge1Text" /></div>
+            <div class="field"><label>תג 1 — תיאור</label><input type="text" data-path="hero.badge1Sub" /></div>
+          </div>
+          <div class="row-2">
+            <div class="field"><label>תג 2 — מספר</label><input type="text" data-path="hero.badge2Text" /></div>
+            <div class="field"><label>תג 2 — תיאור</label><input type="text" data-path="hero.badge2Sub" /></div>
+          </div>
         </div>
       </div>
 
-      <!-- ═══ PAIN/SOLUTION ═══ -->
-      <div class="section-panel" id="panel-painSolution">
-        <div class="panel-title"><span class="icon">⚡</span> כאב ← פתרון</div>
+      <!-- ═══ SERVICES ═══ -->
+      <div class="section-panel" id="panel-services">
+        <div class="panel-title"><span class="icon">⭐</span> למה אני?</div>
         <div class="card">
-          <div class="card-title">כותרות סקשן</div>
-          <div class="row-2">
-            <div class="field"><label>תווית סקשן</label><input type="text" data-path="painSolution.sectionLabel" /></div>
-            <div class="field"><label>כותרת ראשית</label><input type="text" data-path="painSolution.title" /></div>
-          </div>
+          <div class="field"><label>כותרת סקשן</label><input type="text" data-path="services.title" /></div>
         </div>
         <div class="card">
-          <div class="card-title">נקודות כאב (אדום)</div>
-          <div id="painsList" class="item-list"></div>
-          <button class="btn-add" onclick="addItem('painSolution.pains', {title:'',text:''}, renderPains)">+ הוסף נקודת כאב</button>
+          <div class="card-title">כרטיס 1</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="services.card1Title" /></div>
+          <div class="field"><label>תיאור</label><textarea data-path="services.card1Text"></textarea></div>
         </div>
         <div class="card">
-          <div class="card-title">פתרונות (ירוק)</div>
-          <div id="solutionsList" class="item-list"></div>
-          <button class="btn-add" onclick="addItem('painSolution.solutions', {title:'',text:''}, renderSolutions)">+ הוסף פתרון</button>
-        </div>
-      </div>
-
-      <!-- ═══ PROCESS ═══ -->
-      <div class="section-panel" id="panel-process">
-        <div class="panel-title"><span class="icon">📋</span> תהליך</div>
-        <div class="card">
-          <div class="row-2">
-            <div class="field"><label>תווית סקשן</label><input type="text" data-path="process.sectionLabel" /></div>
-            <div class="field"><label>כותרת</label><input type="text" data-path="process.title" /></div>
-          </div>
+          <div class="card-title">כרטיס 2</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="services.card2Title" /></div>
+          <div class="field"><label>תיאור</label><textarea data-path="services.card2Text"></textarea></div>
         </div>
         <div class="card">
-          <div class="card-title">שלבי התהליך</div>
-          <div id="stepsList" class="item-list"></div>
-        </div>
-      </div>
-
-      <!-- ═══ SPECIALTIES ═══ -->
-      <div class="section-panel" id="panel-specialties">
-        <div class="panel-title"><span class="icon">⭐</span> התמחויות</div>
-        <div class="card">
-          <div class="row-2">
-            <div class="field"><label>תווית סקשן</label><input type="text" data-path="specialties.sectionLabel" /></div>
-            <div class="field"><label>כותרת</label><input type="text" data-path="specialties.title" /></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">כרטיסים</div>
-          <div id="specCardsList" class="item-list"></div>
-          <button class="btn-add" onclick="addItem('specialties.cards', {title:'',text:''}, renderSpecCards)">+ הוסף כרטיס</button>
-        </div>
-      </div>
-
-      <!-- ═══ ABOUT ═══ -->
-      <div class="section-panel" id="panel-about">
-        <div class="panel-title"><span class="icon">👤</span> אודות</div>
-        <div class="card">
-          <div class="card-title">תמונת פרופיל</div>
-          <div class="photo-upload-wrap">
-            <div class="photo-preview" id="photoPreview">
-              <span id="photoInitials"></span>
-            </div>
-            <div class="photo-upload-btns">
-              <button class="btn btn-upload" onclick="document.getElementById('photoFileInput').click()">📤 העלאת תמונה</button>
-              <button class="btn btn-clear btn-sm" onclick="clearPhoto()">✕ הסרת תמונה</button>
-              <input type="file" id="photoFileInput" accept="image/*" onchange="uploadPhoto(this)" />
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">פרטים אישיים</div>
-          <div class="row-3">
-            <div class="field"><label>שם מלא</label><input type="text" data-path="about.name" /></div>
-            <div class="field"><label>תפקיד / כותרת</label><input type="text" data-path="about.subtitle" /></div>
-            <div class="field"><label>ראשי תיבות (placeholder)</label><input type="text" data-path="about.initials" /></div>
-          </div>
-          <div class="row-2">
-            <div class="field"><label>תווית סקשן</label><input type="text" data-path="about.sectionLabel" /></div>
-            <div class="field"><label>כותרת ראשית</label><input type="text" data-path="about.title" /></div>
-          </div>
-          <div class="field"><label>פסקת חום אישית</label><textarea data-path="about.text" style="min-height:120px;"></textarea></div>
-        </div>
-        <div class="card">
-          <div class="card-title">אישורים / כישורים</div>
-          <div id="credList" class="cred-list"></div>
-          <button class="btn-add" style="margin-top:10px;" onclick="addCredential()">+ הוסף אישור</button>
+          <div class="card-title">כרטיס 3</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="services.card3Title" /></div>
+          <div class="field"><label>תיאור</label><textarea data-path="services.card3Text"></textarea></div>
         </div>
       </div>
 
@@ -704,43 +717,88 @@
       <div class="section-panel" id="panel-testimonials">
         <div class="panel-title"><span class="icon">💬</span> המלצות</div>
         <div class="card">
-          <div class="row-2">
-            <div class="field"><label>תווית סקשן</label><input type="text" data-path="testimonials.sectionLabel" /></div>
-            <div class="field"><label>כותרת</label><input type="text" data-path="testimonials.title" /></div>
-          </div>
+          <div class="card-title">המלצה 1</div>
+          <div class="field"><label>שם</label><input type="text" data-path="testimonials.t1.name" /></div>
+          <div class="field"><label>אות ראשונה (לאווטר)</label><input type="text" data-path="testimonials.t1.initial" maxlength="1" style="width:60px;" /></div>
+          <div class="field"><label>מיקום / סוג שירות</label><input type="text" data-path="testimonials.t1.sub" /></div>
+          <div class="field"><label>טקסט המלצה</label><textarea data-path="testimonials.t1.text" style="min-height:80px;"></textarea></div>
         </div>
         <div class="card">
-          <div class="card-title">ציטוטים</div>
-          <div id="testiList" class="item-list"></div>
-          <button class="btn-add" onclick="addItem('testimonials.items', {text:'',name:'',case:''}, renderTestis)">+ הוסף המלצה</button>
+          <div class="card-title">המלצה 2</div>
+          <div class="field"><label>שם</label><input type="text" data-path="testimonials.t2.name" /></div>
+          <div class="field"><label>אות ראשונה (לאווטר)</label><input type="text" data-path="testimonials.t2.initial" maxlength="1" style="width:60px;" /></div>
+          <div class="field"><label>מיקום / סוג שירות</label><input type="text" data-path="testimonials.t2.sub" /></div>
+          <div class="field"><label>טקסט המלצה</label><textarea data-path="testimonials.t2.text" style="min-height:80px;"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title">המלצה 3</div>
+          <div class="field"><label>שם</label><input type="text" data-path="testimonials.t3.name" /></div>
+          <div class="field"><label>אות ראשונה (לאווטר)</label><input type="text" data-path="testimonials.t3.initial" maxlength="1" style="width:60px;" /></div>
+          <div class="field"><label>מיקום / סוג שירות</label><input type="text" data-path="testimonials.t3.sub" /></div>
+          <div class="field"><label>טקסט המלצה</label><textarea data-path="testimonials.t3.text" style="min-height:80px;"></textarea></div>
         </div>
       </div>
 
-      <!-- ═══ CTA ═══ -->
-      <div class="section-panel" id="panel-cta">
-        <div class="panel-title"><span class="icon">📨</span> CTA / יצירת קשר</div>
+      <!-- ═══ MY SERVICES ═══ -->
+      <div class="section-panel" id="panel-myservices">
+        <div class="panel-title"><span class="icon">🏦</span> השירותים שלי</div>
         <div class="card">
-          <div class="card-title">כותרות</div>
-          <div class="row-2">
-            <div class="field"><label>תווית סקשן</label><input type="text" data-path="cta.sectionLabel" /></div>
-            <div class="field"><label>כותרת (חלק רגיל)</label><input type="text" data-path="cta.title" /></div>
-          </div>
-          <div class="row-2">
-            <div class="field"><label>כותרת (חלק איטליק זהב)</label><input type="text" data-path="cta.titleItalic" /></div>
-            <div class="field"><label>תת-כותרת</label><input type="text" data-path="cta.subtitle" /></div>
+          <div class="field"><label>כותרת סקשן</label><input type="text" data-path="myServices.title" /></div>
+          <div class="field"><label>תת-כותרת</label><input type="text" data-path="myServices.sub" /></div>
+        </div>
+        <div class="card">
+          <div class="card-title">כרטיס 1 (משכנתא חדשה)</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="myServices.card1Title" /></div>
+          <div class="field"><label>תיאור</label><textarea data-path="myServices.card1Text"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title">כרטיס 2 (מחזור משכנתא)</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="myServices.card2Title" /></div>
+          <div class="field"><label>תיאור</label><textarea data-path="myServices.card2Text"></textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title">כרטיס 3 (הלוואה לכל מטרה)</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="myServices.card3Title" /></div>
+          <div class="field"><label>תיאור</label><textarea data-path="myServices.card3Text"></textarea></div>
+        </div>
+      </div>
+
+      <!-- ═══ ABOUT ═══ -->
+      <div class="section-panel" id="panel-about">
+        <div class="panel-title"><span class="icon">👤</span> אודות</div>
+        <div class="card">
+          <div class="card-title">תמונה</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+            <div id="aboutImgPreview" style="width:80px;height:80px;border-radius:50%;border:1.5px dashed #d4cfc8;overflow:hidden;background:#eee;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:11px;color:#bbb;">אין</span>
+            </div>
+            <label style="cursor:pointer;background:var(--ocean);color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;">
+              העלה תמונה
+              <input type="file" id="photoFileInput" accept="image/*" style="display:none;" onchange="uploadPhoto(this)" />
+            </label>
+            <button class="btn btn-clear btn-sm" onclick="clearPhoto()">✕ הסר</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">וואטסאפ</div>
-          <div class="row-2">
-            <div class="field"><label>מספר טלפון (עם קידומת, ללא +)</label><input type="text" data-path="cta.whatsappNumber" placeholder="972501234567" /></div>
-            <div class="field"><label>טקסט כפתור וואטסאפ</label><input type="text" data-path="cta.whatsappText" /></div>
-          </div>
+          <div class="card-title">טקסטים</div>
+          <div class="field"><label>כותרת</label><input type="text" data-path="about.title" /></div>
+          <div class="field"><label>פסקה 1</label><textarea data-path="about.p1" style="min-height:80px;"></textarea></div>
+          <div class="field"><label>פסקה 2</label><textarea data-path="about.p2" style="min-height:80px;"></textarea></div>
+        </div>
+      </div>
+
+      <!-- ═══ CONTACT ═══ -->
+      <div class="section-panel" id="panel-contact">
+        <div class="panel-title"><span class="icon">📨</span> יצירת קשר</div>
+        <div class="card">
+          <div class="field"><label>כותרת</label><input type="text" data-path="contact.title" /></div>
+          <div class="field"><label>תת-כותרת</label><textarea data-path="contact.sub"></textarea></div>
         </div>
         <div class="card">
-          <div class="card-title">טופס יצירת קשר</div>
-          <div class="field"><label>כותרת הטופס</label><input type="text" data-path="cta.formTitle" /></div>
-          <div class="field"><label>טקסט הבטחה (מתחת לטופס)</label><textarea data-path="cta.promise"></textarea></div>
+          <div class="card-title">נקודות יתרון (✓)</div>
+          <div class="field"><label>פריט 1</label><input type="text" data-path="contact.b1" /></div>
+          <div class="field"><label>פריט 2</label><input type="text" data-path="contact.b2" /></div>
+          <div class="field"><label>פריט 3</label><input type="text" data-path="contact.b3" /></div>
         </div>
       </div>
 
@@ -969,6 +1027,11 @@
 
     <div class="email-preview-wrap" id="emailPreview"></div>
 
+    <div id="emailAttachWrap" style="display:none;margin-top:12px;">
+      <div class="email-label" style="margin-bottom:6px;">📎 קבצים מצורפים</div>
+      <div id="emailAttachList" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
     <div class="email-status" id="emailStatus"></div>
     <button class="btn-send-email" id="btnSendEmail" onclick="doSendLeadEmail()">שלח מייל ✉</button>
 
@@ -1027,14 +1090,9 @@ async function loadContent() {
   const res = await apiFetch('/api/content');
   C = await res.json();
   populateSimpleFields();
-  renderHeroStats();
-  renderPains();
-  renderSolutions();
-  renderSteps();
-  renderSpecCards();
-  renderAboutCredentials();
-  renderTestis();
-  updatePhotoPreview();
+  updateLogoPreview();
+  updateHeroBgPreview();
+  updateAboutImgPreview();
 }
 
 function populateSimpleFields() {
@@ -1198,15 +1256,75 @@ function removeItem(path, idx, renderFn) {
 }
 
 /* ─── PHOTO ─── */
-function updatePhotoPreview() {
-  const preview = document.getElementById('photoPreview');
-  const initials = document.getElementById('photoInitials');
-  if (C.about && C.about.photo) {
-    preview.innerHTML = `<img src="${C.about.photo}" alt="פרופיל" />`;
+async function uploadHeroBg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('photo', file);
+  const res = await apiFetch('/api/upload', { method: 'POST', body: fd });
+  const data = await res.json();
+  if (data.ok) {
+    if (!C.hero) C.hero = {};
+    C.hero.bgImage = data.url;
+    updateHeroBgPreview();
+    showToast('התמונה הועלתה בהצלחה');
   } else {
-    preview.innerHTML = `<span id="photoInitials">${C.about ? C.about.initials || '' : ''}</span>`;
+    showToast('שגיאה בהעלאה', 'error');
   }
 }
+
+function updateHeroBgPreview() {
+  const preview = document.getElementById('heroBgPreview');
+  if (!preview) return;
+  if (C.hero && C.hero.bgImage) {
+    preview.innerHTML = `<img src="${C.hero.bgImage}" style="width:100%;height:100%;object-fit:cover;" />`;
+  } else {
+    preview.innerHTML = `<span style="font-size:11px;color:#bbb;">אין תמונה</span>`;
+  }
+}
+
+function updateAboutImgPreview() {
+  const preview = document.getElementById('aboutImgPreview');
+  if (!preview) return;
+  if (C.about && C.about.image) {
+    preview.innerHTML = `<img src="${C.about.image}" style="width:100%;height:100%;object-fit:cover;" />`;
+  } else {
+    preview.innerHTML = `<span style="font-size:11px;color:#bbb;">אין</span>`;
+  }
+}
+async function uploadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('photo', file);
+  const res = await apiFetch('/api/upload', { method: 'POST', body: fd });
+  const data = await res.json();
+  if (data.ok) {
+    if (!C.nav) C.nav = {};
+    C.nav.logoImage = data.url;
+    updateLogoPreview();
+    showToast('הלוגו הועלה בהצלחה');
+  } else {
+    showToast('שגיאה בהעלאה', 'error');
+  }
+}
+
+function clearLogo() {
+  if (!C.nav) C.nav = {};
+  C.nav.logoImage = '';
+  updateLogoPreview();
+}
+
+function updateLogoPreview() {
+  const preview = document.getElementById('logoPreview');
+  if (!preview) return;
+  if (C.nav && C.nav.logoImage) {
+    preview.innerHTML = `<img src="${C.nav.logoImage}" style="max-height:44px;max-width:116px;object-fit:contain;" />`;
+  } else {
+    preview.innerHTML = `<span style="font-size:11px;color:#bbb;">אין תמונה</span>`;
+  }
+}
+
 async function uploadPhoto(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1215,8 +1333,9 @@ async function uploadPhoto(input) {
   const res = await apiFetch('/api/upload', { method: 'POST', body: fd });
   const data = await res.json();
   if (data.ok) {
-    C.about.photo = data.url;
-    updatePhotoPreview();
+    if (!C.about) C.about = {};
+    C.about.image = data.url;
+    updateAboutImgPreview();
     showToast('התמונה הועלתה בהצלחה');
   } else {
     showToast('שגיאה בהעלאה', 'error');
@@ -1224,8 +1343,9 @@ async function uploadPhoto(input) {
   input.value = '';
 }
 function clearPhoto() {
-  C.about.photo = '';
-  updatePhotoPreview();
+  if (!C.about) C.about = {};
+  C.about.image = '';
+  updateAboutImgPreview();
 }
 
 /* ─── SAVE ─── */
@@ -1257,17 +1377,34 @@ async function saveContent() {
 }
 
 /* ─── NAVIGATION ─── */
+function navigateTo(panel) {
+  const a = document.querySelector(`.sidebar-nav a[data-panel="${panel}"]`);
+  if (!a) return;
+  document.querySelectorAll('.sidebar-nav a').forEach(x => x.classList.remove('active'));
+  a.classList.add('active');
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + panel).classList.add('active');
+  document.getElementById('topbarTitle').textContent = a.textContent.trim();
+  history.pushState({ panel }, '', '#' + panel);
+}
+
 document.querySelectorAll('.sidebar-nav a').forEach(a => {
   a.addEventListener('click', e => {
     e.preventDefault();
-    const panel = a.dataset.panel;
-    document.querySelectorAll('.sidebar-nav a').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + panel).classList.add('active');
-    document.getElementById('topbarTitle').textContent = a.textContent.trim();
+    navigateTo(a.dataset.panel);
   });
 });
+
+window.addEventListener('popstate', e => {
+  const panel = (e.state && e.state.panel) || location.hash.replace('#','') || 'nav';
+  navigateTo(panel);
+});
+
+// Load panel from URL hash on page load
+(function() {
+  const hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('panel-' + hash)) navigateTo(hash);
+})();
 
 /* ─── AUTO-SAVE INDICATOR ─── */
 document.addEventListener('input', () => {
@@ -1279,26 +1416,49 @@ document.addEventListener('input', () => {
 /* ════════════════════════════════════════
    AUTH — login overlay + apiFetch wrapper
 ════════════════════════════════════════ */
-const SESSION_KEY = 'adminToken';
+const SESSION_KEY     = 'adminJwt';
+const SESSION_KEY_REM = 'adminJwtRemember';
 
-// apiFetch: drop-in replacement for fetch() that injects the admin token
+function getSession() {
+  return sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY_REM) || null;
+}
+function saveSession(token, remember) {
+  if (remember) {
+    localStorage.setItem(SESSION_KEY_REM, token);
+    sessionStorage.removeItem(SESSION_KEY);
+  } else {
+    sessionStorage.setItem(SESSION_KEY, token);
+    localStorage.removeItem(SESSION_KEY_REM);
+  }
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY_REM);
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+// apiFetch: injects JWT bearer token; on 401 clears session and shows login
 async function apiFetch(url, opts = {}) {
-  const token = localStorage.getItem(SESSION_KEY) || '';
-  opts.headers = { ...(opts.headers || {}), 'X-Admin-Token': token };
+  const token = getSession() || '';
+  opts.headers = {
+    ...(opts.headers || {}),
+    'Authorization': 'Bearer ' + token,
+    'X-Admin-Token': token,   // backward-compat for legacy endpoints
+  };
   const res = await fetch(url, opts);
   if (res.status === 401) {
-    localStorage.removeItem(SESSION_KEY);
+    clearSession();
     showLoginOverlay();
-    throw new Error('Session expired — please log in again');
+    throw new Error('Session expired');
   }
   return res;
 }
 
 function showLoginOverlay() {
-  document.getElementById('loginOverlay').style.display = 'flex';
+  const el = document.getElementById('loginOverlay');
+  el.style.display = 'flex';
   document.getElementById('loginTokenInput').value = '';
   document.getElementById('loginError').style.display = 'none';
-  setTimeout(() => document.getElementById('loginTokenInput').focus(), 100);
+  setTimeout(() => document.getElementById('loginEmail').focus(), 100);
 }
 
 function hideLoginOverlay() {
@@ -1306,43 +1466,49 @@ function hideLoginOverlay() {
 }
 
 async function doLogin() {
-  const token = document.getElementById('loginTokenInput').value.trim();
-  if (!token) return;
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = true; btn.textContent = '⏳ בודק...';
+  const email    = (document.getElementById('loginEmail').value || '').trim();
+  const password = document.getElementById('loginTokenInput').value;
+  if (!email || !password) return;
+  const remember = document.getElementById('rememberMe').checked;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = '⏳ מתחבר...';
   try {
-    // Use plain fetch — token not yet in localStorage, apiFetch would overwrite it with ''
-    const res = await fetch('/api/email-config', {
-      headers: { 'X-Admin-Token': token }
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
-    if (res.status === 401) {
-      document.getElementById('loginError').style.display = 'block';
+    const data = await res.json();
+    if (!data.ok) {
+      errEl.textContent    = data.error || 'אימייל או סיסמה שגויים';
+      errEl.style.display  = 'block';
       document.getElementById('loginTokenInput').select();
       return;
     }
-    localStorage.setItem(SESSION_KEY, token);
+    saveSession(data.token, remember);
     hideLoginOverlay();
     loadContent();
     loadForms();
   } catch (e) {
-    document.getElementById('loginError').textContent = 'שגיאת רשת — נסה שוב';
-    document.getElementById('loginError').style.display = 'block';
+    errEl.textContent   = 'שגיאת רשת — נסה שוב';
+    errEl.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'כניסה';
   }
 }
 
-/* ─── LOGIN EVENT LISTENERS (replaces inline onkeydown / onclick) ─── */
+/* ─── LOGIN EVENT LISTENERS ─── */
 document.getElementById('loginBtn').addEventListener('click', doLogin);
-document.getElementById('loginTokenInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') doLogin();
-});
+document.getElementById('loginTokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginEmail').addEventListener('keydown',      e => { if (e.key === 'Enter') document.getElementById('loginTokenInput').focus(); });
 
 /* ─── INIT ─── */
-// Show login if no token saved, otherwise boot directly
-if (!localStorage.getItem(SESSION_KEY)) {
+if (!getSession()) {
   showLoginOverlay();
 } else {
+  hideLoginOverlay();
   loadContent();
   loadForms();
 }
@@ -1518,6 +1684,17 @@ function addOption(qi) {
 function removeOption(qi, oi) {
   currentQuestions[qi].options.splice(oi, 1);
   renderQuestionsList();
+}
+
+function toggleBranching(qi, checked) {
+  currentQuestions[qi].branching = checked ? (currentQuestions[qi].branching || {}) : undefined;
+  renderQuestionsList();
+}
+
+async function toggleSendData(qi, checked) {
+  currentQuestions[qi].sendData = checked;
+  renderQuestionsList();
+  if (currentForm) await saveForm();
 }
 
 function renderQuestionsList() {
@@ -2102,130 +2279,141 @@ function renderLeadsTable(leads) {
 
   const rows = leads.map((lead, idx) => {
     const date = new Date(lead.submittedAt).toLocaleDateString('he-IL', {
-      day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+      day:'2-digit', month:'2-digit', year:'numeric'
     });
 
-    // Chips — leads are always contact/manual so keys are English (contact) or Hebrew (manual)
-    const LABEL_MAP = { name: 'שם', phone: 'טלפון', message: 'הודעה' };
-    const chips = Object.entries(lead.answers || {})
-      .slice(0, 4)
-      .map(([k, v]) => {
-        if (!v) return '';
-        const label = LABEL_MAP[k] || k;
-        return `<span class="lead-chip"><strong>${esc(String(label).slice(0,14))}</strong>: ${esc(String(v).slice(0,30))}</span>`;
-      }).filter(Boolean).join('');
+    const a = lead.answers || {};
+    const name   = esc(a.name   || a['שם מלא']  || '—');
+    const phone  = esc(a.phone  || a['טלפון']    || '—');
+    const email  = esc(a.email  || a['אימייל']   || a['מייל'] || '—');
+    const source = esc(a.source || a['מקור']     || lead.formTitle || '—');
 
-    // Linked submissions badge
-    const linkedCount = (lead.linkedSubmissions || []).length;
-    const linkedBadge = linkedCount
-      ? `<span style="font-size:11px;background:rgba(200,169,110,.18);color:var(--dg);padding:1px 7px;border-radius:100px;font-weight:700;margin-right:4px;">📋 ${linkedCount}</span>`
-      : '';
-
-    // Link sent / response received status cell
-    let statusCellHtml = '<td style="text-align:center;">—</td>';
+    // Status badge
+    let statusHtml = '<span class="status-badge status-new">חדש</span>';
     if (lead.responseReceivedAt) {
-      statusCellHtml = `<td style="text-align:center;">
-        <span class="lead-link-status received" title="התקבלה תשובה מהלקוח">✓</span>
-        <div style="font-size:10px;color:#2a7a4e;margin-top:3px;white-space:nowrap;">התקבלה תשובה</div>
-      </td>`;
+      statusHtml = '<span class="status-badge status-done">התקבלה תשובה</span>';
     } else if (lead.linkSentAt) {
-      statusCellHtml = `<td style="text-align:center;">
-        <span class="lead-link-status pending" title="ממתין לתשובת הלקוח">✓</span>
-        <div style="font-size:10px;color:#888;margin-top:3px;white-space:nowrap;">ממתין לתשובה</div>
-      </td>`;
+      statusHtml = '<span class="status-badge status-waiting">ממתין לתשובה</span>';
     }
 
-    const filesCollapseHtml = ''; // files now live inside linked sub-records
+    // Check if any linked submission has sendData fields configured
+    const hasSendData = (lead.linkedSubmissions||[]).some(sub =>
+      (sub.formQuestions||[]).some(q => q.sendData)
+    );
 
     return `
       <tr class="lead-main-row" id="lead-row-${idx}">
         <td style="white-space:nowrap;color:#8a9ba8;font-size:12px;">${date}</td>
-        <td><span style="font-weight:600;color:var(--ocean);">${esc(lead.formTitle)}</span></td>
-        <td>
-          <div class="lead-answers-chips">${chips || '<span style="color:#ccc;font-size:12px;">אין נתונים</span>'}</div>
-          ${linkedBadge}
-        </td>
-        ${statusCellHtml}
-        <td style="width:1%;white-space:nowrap;">
-          <button class="btn btn-sm" style="background:rgba(28,58,74,.08);color:var(--ocean);margin-left:4px;"
-            onclick="toggleLeadDetail(${idx})">🔍 פרטים</button>
-          <button class="btn btn-sm" style="background:rgba(28,58,74,.06);color:var(--ocean);margin-left:4px;"
-            onclick="openViewAllData(${idx})">📄 כל הנתונים</button>
-          <button class="btn-send-form" onclick="openSendFormModal(${idx})" style="margin-left:4px;">📋 שלח טופס</button>
+        <td style="color:#555;">${source}</td>
+        <td style="font-weight:600;color:var(--ocean);">${name}</td>
+        <td>${phone}</td>
+        <td style="color:#8a9ba8;">${email}</td>
+        <td>${statusHtml}</td>
+        <td><button class="btn-send-form" onclick="openSendFormModal(${idx})">📋 שלח טופס</button></td>
+        <td style="white-space:nowrap;text-align:left;">
+          <button class="btn-plus-detail" id="plus-btn-${idx}" onclick="toggleLeadDetail(${idx})" title="פרטים">+</button>
           <button class="btn-del-lead" onclick="deleteLead('${esc(lead.id)}',${idx})" title="מחק ליד">🗑</button>
         </td>
       </tr>
       <tr class="lead-detail-row" id="lead-detail-${idx}" style="display:none;">
-        <td colspan="5">
+        <td colspan="8">
           <div class="lead-detail-inner">
             ${buildLeadDetail(lead)}
           </div>
         </td>
-      </tr>
-      ${filesCollapseHtml}`;
+      </tr>`;
   }).join('');
 
   wrap.innerHTML = `
     <div style="overflow-x:auto;">
-      <table class="sub-table">
+      <table class="leads-tbl">
         <thead>
           <tr>
-            <th>תאריך</th>
-            <th>טופס</th>
-            <th>נתונים</th>
-            <th style="width:90px;text-align:center;">סטטוס</th>
+            <th>תאריך יצירה</th>
+            <th>מקור הגעה</th>
+            <th>שם מלא</th>
+            <th>פלאפון</th>
+            <th>מייל</th>
+            <th>סטטוס</th>
+            <th>שלח טופס</th>
             <th></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+  restoreFieldCbStates(wrap);
+}
+
+function saveFieldCbState(cb) {
+  const subId = cb.dataset.subid;
+  if (!subId) return;
+  const key = 'fieldCb_' + subId;
+  const stored = JSON.parse(localStorage.getItem(key) || '{}');
+  stored[cb.dataset.label] = cb.checked;
+  localStorage.setItem(key, JSON.stringify(stored));
+}
+
+function restoreFieldCbStates(containerEl) {
+  containerEl.querySelectorAll('.field-report-cb[data-subid]').forEach(cb => {
+    const key = 'fieldCb_' + cb.dataset.subid;
+    const stored = JSON.parse(localStorage.getItem(key) || '{}');
+    if (cb.dataset.label in stored) cb.checked = stored[cb.dataset.label];
+  });
 }
 
 function buildLeadDetail(lead) {
-  const LABEL_MAP = { name: 'שם מלא', phone: 'טלפון', message: 'הודעה' };
-  const entries = Object.entries(lead.answers || {});
-
-  // Main lead fields
-  const fieldsHtml = entries.length
-    ? entries.map(([key, val]) => {
-        const label = LABEL_MAP[key] || key;
-        const display = Array.isArray(val) ? esc(val.join(', ')) : esc(String(val || '—'));
-        return `<div class="lead-detail-field">
-          <div class="lead-detail-label">${esc(label)}</div>
-          <div class="lead-detail-value">${display}</div>
-        </div>`;
-      }).join('')
-    : '<div style="color:#aaa;font-size:13px;padding:8px;">אין פרטי קשר</div>';
-
-  // Linked form submissions
   const linked = lead.linkedSubmissions || [];
   let linkedHtml = '';
   if (linked.length) {
     const cards = linked.map((sub, si) => {
       const date = new Date(sub.submittedAt).toLocaleDateString('he-IL',
         {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      const qs   = (sub.formQuestions || []).filter(q => q.type !== 'page_break');
-      const qMap = {};
-      qs.forEach(q => { qMap['q_'+q.id] = q; });
 
-      const regularFields = [];
-      const fileFields    = [];
-      Object.entries(sub.answers || {}).forEach(([k, v]) => {
-        const q = qMap[k];
-        if (!v || (Array.isArray(v) && !v.length)) return;
-        if (q?.type === 'file') {
-          fileFields.push({ label: q?.label || k, val: v });
+      // Build sections from page_break structure
+      const allQs = sub.formQuestions || [];
+      const sections = [];
+      let curSec = { title: '', questions: [] };
+      allQs.forEach(q => {
+        if (q.type === 'page_break') {
+          if (curSec.questions.length || curSec.title) sections.push(curSec);
+          curSec = { title: q.title || '', questions: [] };
         } else {
-          const display = Array.isArray(v) ? v.join(', ') : String(v);
-          regularFields.push(`<div class="linked-sub-field">
-            <div class="linked-sub-field-label">${esc(q?.label || k)}</div>
-            <div class="linked-sub-field-value">${esc(display)}</div>
-          </div>`);
+          curSec.questions.push(q);
+        }
+      });
+      if (curSec.questions.length) sections.push(curSec);
+
+      // qMap and section index per question key
+      const qMap = {};
+      const qSecIdx = {};
+      sections.forEach((sec, si) => {
+        sec.questions.forEach(q => {
+          qMap['q_'+q.id] = q;
+          qSecIdx['q_'+q.id] = si;
+        });
+      });
+
+      // Bucket answers into sections
+      const buckets = sections.map(() => ({ regular: [], files: [] }));
+      const overflow = { regular: [], files: [] };
+
+      Object.entries(sub.answers || {}).forEach(([k, v]) => {
+        if (!v || (Array.isArray(v) && !v.length)) return;
+        const q = qMap[k];
+        const isFile = q?.type === 'file' || (() => {
+          if (typeof v !== 'string') return false;
+          try { const p = JSON.parse(v); return p && p.url && p.name; } catch { return false; }
+        })();
+        const bucket = (qSecIdx[k] != null) ? buckets[qSecIdx[k]] : overflow;
+        if (isFile) {
+          bucket.files.push({ label: q?.label || k, val: v });
+        } else {
+          bucket.regular.push({ label: q?.label || k, display: Array.isArray(v) ? v.join(', ') : String(v), sendData: q?.sendData || false });
         }
       });
 
-      const filesHtml = fileFields.map(({label, val}) => {
+      const renderFileRow = ({label, val}) => {
         try {
           const f = JSON.parse(val);
           return `<div class="lead-file-row">
@@ -2235,20 +2423,63 @@ function buildLeadDetail(lead) {
             <a href="${esc(f.url)}" download target="_blank" class="lead-file-dl">⬇ הורד</a>
           </div>`;
         } catch { return ''; }
+      };
+
+      const sectionsHtml = sections.map((sec, si) => {
+        const b = buckets[si];
+        if (!b.regular.length && !b.files.length) return '';
+        const fieldsHtml = b.regular.map(f =>
+          `<div class="linked-sub-field">
+            <input type="checkbox" class="field-report-cb" ${f.sendData?'checked':''} data-label="${esc(f.label)}" data-value="${esc(f.display)}" data-subid="${esc(sub.id)}" title="כלול בדוח" onchange="saveFieldCbState(this)"/>
+            <div class="linked-sub-field-label">${esc(f.label)}</div>
+            <div class="linked-sub-field-value">${esc(f.display)}</div>
+          </div>`).join('');
+        const filesHtml = b.files.map(renderFileRow).filter(Boolean).join('');
+        return `<div class="sub-section">
+          ${sec.title ? `<div class="sub-section-title">${esc(sec.title)}</div>` : ''}
+          ${fieldsHtml ? `<div class="linked-sub-fields">${fieldsHtml}</div>` : ''}
+          ${filesHtml ? `<div class="linked-sub-files">${filesHtml}</div>` : ''}
+        </div>`;
       }).filter(Boolean).join('');
 
+      // Render any answers whose question wasn't found in a section
+      const ovfFields = overflow.regular.map(f =>
+        `<div class="linked-sub-field">
+          <input type="checkbox" class="field-report-cb" ${f.sendData?'checked':''} data-label="${esc(f.label)}" data-value="${esc(f.display)}" data-subid="${esc(sub.id)}" title="כלול בדוח" onchange="saveFieldCbState(this)"/>
+          <div class="linked-sub-field-label">${esc(f.label)}</div>
+          <div class="linked-sub-field-value">${esc(f.display)}</div>
+        </div>`).join('');
+      const ovfFiles = overflow.files.map(renderFileRow).filter(Boolean).join('');
+      const ovfHtml = (ovfFields || ovfFiles) ? `<div class="sub-section">
+        ${ovfFields ? `<div class="linked-sub-fields">${ovfFields}</div>` : ''}
+        ${ovfFiles ? `<div class="linked-sub-files">${ovfFiles}</div>` : ''}
+      </div>` : '';
+
+      const bodyContent = sectionsHtml + ovfHtml || '<div style="color:#aaa;font-size:13px;padding:10px 0;">אין נתונים</div>';
+
+      const loanType = sub.answers?.q_loan_type || sub.answers?.['q_loan_type'] || '';
+      const cardTitle = loanType || sub.formTitle || 'טופס';
+      const curStatus = sub.subStatus || 'נשלח';
+      const statusClass = {'נשלח':'s-sent','ממתין לאישור':'s-pending','הוקפאה':'s-frozen','נדחה':'s-rejected','בוטל':'s-cancelled','אושר':'s-approved'}[curStatus] || 's-sent';
+      const statusOptions = ['נשלח','ממתין לאישור','הוקפאה','נדחה','בוטל','אושר'].map(s =>
+        `<option value="${s}"${s===curStatus?' selected':''}>${s}</option>`).join('');
       const uid = `lsub_${lead.id}_${si}`;
       return `<div class="linked-sub-card">
         <div class="linked-sub-header" onclick="toggleLinkedSub('${uid}')">
           <span style="font-size:16px;">📋</span>
-          <span class="linked-sub-form-title">${esc(sub.formTitle)}</span>
+          <span class="linked-sub-form-title">${esc(cardTitle)}</span>
           <span class="linked-sub-date">${date}</span>
+          <select class="sub-status-select ${statusClass}" id="subst_${sub.id}"
+            onclick="event.stopPropagation()"
+            onchange="updateSubStatus('${sub.id}', this)">
+            ${statusOptions}
+          </select>
+          <button class="sfm-btn sfm-btn-new-form" onclick="event.stopPropagation();sendNewFormLink('${esc(lead.id)}','${esc(sub.id)}',this)" title="שלח טופס נוסף עם נתונים קיימים">📋 טופס נוסף</button>
+          <button class="sfm-btn" style="background:rgba(28,58,74,.08);color:var(--ocean);" onclick="event.stopPropagation();printReport('${esc(lead.id)}','${esc(sub.id)}',${si})">🖨 הפקת דוח</button>
           <span class="linked-sub-toggle" id="tog_${uid}">▼</span>
         </div>
         <div class="linked-sub-body" id="${uid}">
-          ${regularFields.length ? `<div class="linked-sub-fields">${regularFields.join('')}</div>` : ''}
-          ${filesHtml ? `<div class="linked-sub-files" style="margin-top:${regularFields.length?'10px':'0'}">${filesHtml}</div>` : ''}
-          ${!regularFields.length && !filesHtml ? '<div style="color:#aaa;font-size:13px;">אין נתונים</div>' : ''}
+          <div class="linked-sub-body-inner">${bodyContent}</div>
         </div>
       </div>`;
     }).join('');
@@ -2262,7 +2493,171 @@ function buildLeadDetail(lead) {
     </div>`;
   }
 
-  return fieldsHtml + linkedHtml;
+  return linkedHtml;
+}
+
+function onLeadSendCbChange(cb, leadIdx) {
+  const lead = _allLeads[leadIdx];
+  if (!lead) return;
+  // Visual feedback only — sendData is configured in the form editor
+  if (cb.checked) {
+    showSubToast('info', 'שליחת נתונים', 'לאפשר שליחת נתונים — ערוך את הטופס וסמן את השדות הרלוונטיים');
+    cb.checked = false; // revert — actual config is in the form editor
+  }
+}
+
+function printReport(leadId, subId, subIdx) {
+  const lead = _allLeads.find(l => l.id === leadId);
+  if (!lead) return;
+  const sub = (lead.linkedSubmissions || [])[subIdx];
+  if (!sub) return;
+
+  const a = lead.answers || {};
+  const leadName = a.name || a['שם מלא'] || leadId;
+
+  // Collect checked fields from DOM
+  const uid = `lsub_${leadId}_${subIdx}`;
+  const bodyEl = document.getElementById(uid);
+  const checkedFields = new Set();
+  if (bodyEl) {
+    bodyEl.querySelectorAll('.field-report-cb:checked').forEach(cb => {
+      checkedFields.add(cb.dataset.label);
+    });
+  }
+  const filterByChecked = bodyEl && checkedFields.size >= 0;
+
+  const allQs = sub.formQuestions || [];
+
+  // Build sections
+  const sections = [];
+  let cur = { title: '', questions: [] };
+  allQs.forEach(q => {
+    if (q.type === 'page_break') {
+      if (cur.questions.length || cur.title) sections.push(cur);
+      cur = { title: q.title || '', questions: [] };
+    } else { cur.questions.push(q); }
+  });
+  if (cur.questions.length) sections.push(cur);
+
+  // Build rows per section
+  let sectionsHtml = '';
+  sections.forEach(sec => {
+    const rows = sec.questions.map(q => {
+      if (filterByChecked && !checkedFields.has(q.label || '')) return '';
+      const val = sub.answers?.['q_'+q.id];
+      if (!val || (Array.isArray(val) && !val.length)) return '';
+      let display = Array.isArray(val) ? val.join(', ') : String(val);
+      try { const p = JSON.parse(val); if (p && p.name) display = '📎 ' + p.name; } catch {}
+      return `<tr><td class="lbl">${q.label||''}</td><td class="val">${display}</td></tr>`;
+    }).filter(Boolean).join('');
+    if (!rows) return;
+    sectionsHtml += `
+      ${sec.title ? `<tr class="sec-head"><td colspan="2">${sec.title}</td></tr>` : ''}
+      ${rows}`;
+  });
+
+  const now = new Date().toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const html = `<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<title>דוח לקוח — ${leadName}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; font-size:13px; color:#1a2e4a; padding:32px 40px; direction:rtl; }
+  h1 { font-size:22px; color:#1a2e4a; margin-bottom:4px; }
+  .meta { color:#888; font-size:12px; margin-bottom:24px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+  tr.sec-head td { background:#f0f4f8; font-weight:700; font-size:12px; letter-spacing:.05em; color:#5a7080; padding:8px 12px; border-top:2px solid #dde5ed; }
+  td { padding:8px 12px; border-bottom:1px solid #eef0f3; vertical-align:top; }
+  td.lbl { color:#7a8e9a; width:42%; font-weight:500; }
+  td.val { color:#1a2e4a; font-weight:600; }
+  .header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; border-bottom:3px solid #1a2e4a; padding-bottom:12px; }
+  .brand { font-size:14px; color:#888; }
+  @media print { body { padding:16px 20px; } button { display:none; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>דוח לקוח — ${leadName}</h1>
+    <div class="meta">טופס: ${sub.formTitle || ''} &nbsp;|&nbsp; הופק: ${now}</div>
+  </div>
+  <div class="brand">ייעוץ משכנתאות</div>
+</div>
+<button onclick="window.print()" style="margin-bottom:20px;background:#1a2e4a;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🖨 הדפס / שמור PDF</button>
+<table>
+  <tbody>${sectionsHtml}</tbody>
+</table>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+function showSubToast(type, title, msg, duration = 4000) {
+  const icons = { error: '⚠️', success: '✓', info: 'ℹ️' };
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      ${msg ? `<div class="toast-msg">${msg}</div>` : ''}
+    </div>`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, duration);
+}
+
+async function sendNewFormLink(leadId, subId, btn) {
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳...';
+  try {
+    const r = await apiFetch(`/api/leads/${leadId}/prefill-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ submissionId: subId })
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'שגיאה');
+    const url = window.location.origin + d.url;
+    await navigator.clipboard.writeText(url);
+    btn.textContent = '✓ הועתק!';
+    setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 2500);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = orig;
+    showSubToast('error', 'שגיאה ביצירת קישור', e.message);
+  }
+}
+
+function showStatusTip(el, msg) {
+  const tip = document.createElement('div');
+  tip.textContent = msg;
+  tip.style.cssText = 'position:absolute;background:#2e7d32;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;pointer-events:none;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+  document.body.appendChild(tip);
+  const r = el.getBoundingClientRect();
+  tip.style.top  = (r.top + window.scrollY - tip.offsetHeight - 6) + 'px';
+  tip.style.left = (r.left + r.width/2 - tip.offsetWidth/2) + 'px';
+  setTimeout(() => { tip.style.opacity='0'; tip.style.transition='opacity .3s'; setTimeout(()=>tip.remove(),300); }, 1800);
+}
+
+async function updateSubStatus(subId, sel) {
+  const status = sel.value;
+  const classMap = {'נשלח':'s-sent','ממתין לאישור':'s-pending','הוקפאה':'s-frozen','נדחה':'s-rejected','בוטל':'s-cancelled','אושר':'s-approved'};
+  sel.className = 'sub-status-select ' + (classMap[status] || 's-sent');
+  try {
+    const r = await apiFetch(`/api/submissions/${subId}/status`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ status })
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'שגיאה לא ידועה');
+    showStatusTip(sel, 'סטטוס נשמר ✓');
+  } catch(e) {
+    showSubToast('error', 'שגיאה בשמירת הסטטוס', e.message || 'בדוק את החיבור ונסה שוב');
+  }
 }
 
 function toggleLinkedSub(uid) {
@@ -2276,9 +2671,11 @@ function toggleLinkedSub(uid) {
 function toggleLeadDetail(idx) {
   const detailRow = document.getElementById('lead-detail-'+idx);
   const mainRow   = document.getElementById('lead-row-'+idx);
+  const btn       = document.getElementById('plus-btn-'+idx);
   const isOpen    = detailRow.style.display !== 'none';
   detailRow.style.display = isOpen ? 'none' : '';
   mainRow.classList.toggle('lead-row-expanded', !isOpen);
+  if (btn) btn.classList.toggle('open', !isOpen);
 }
 
 /* ════════════════════════════════════════
@@ -2611,6 +3008,31 @@ function openSendModal(idx) {
     return { question: q.label || q.id, answer: ans };
   });
 
+  // Collect file attachments from submission
+  const fileAttachments = [];
+  _detailQs.forEach(q => {
+    if (q.type !== 'file') return;
+    const v = sub.answers[`q_${q.id}`];
+    if (!v) return;
+    try { const f = JSON.parse(v); if (f && f.url && f.name) fileAttachments.push({ label: q.label || q.id, name: f.name, url: f.url }); } catch {}
+  });
+
+  // Populate attachment checkboxes
+  const attachWrap = document.getElementById('emailAttachWrap');
+  const attachList = document.getElementById('emailAttachList');
+  if (fileAttachments.length) {
+    attachList.innerHTML = fileAttachments.map((a, i) =>
+      `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" data-url="${esc(a.url)}" data-name="${esc(a.name)}" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--ocean);"/>
+        <span style="color:#555;">${esc(a.label)}</span>
+        <span style="color:#aaa;font-size:11px;">(${esc(a.name)})</span>
+       </label>`).join('');
+    attachWrap.style.display = 'block';
+  } else {
+    attachList.innerHTML = '';
+    attachWrap.style.display = 'none';
+  }
+
   // Store for sending
   window._emailPayload = { fields, formTitle: form?.title || 'טופס', submittedAt: sub.submittedAt };
 
@@ -2660,11 +3082,17 @@ async function doSendLeadEmail() {
   btn.disabled = true;
   btn.textContent = 'שולח...';
   status.textContent = '';
+  // Collect checked attachments
+  const attachments = [];
+  document.querySelectorAll('#emailAttachList input[type="checkbox"]:checked').forEach(cb => {
+    attachments.push({ url: cb.dataset.url, name: cb.dataset.name });
+  });
+
   try {
     const res  = await apiFetch('/api/send-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to, ...payload })
+      body: JSON.stringify({ to, ...payload, attachments })
     });
     const data = await res.json();
     if (data.ok) {

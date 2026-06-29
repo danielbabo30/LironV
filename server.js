@@ -8,6 +8,10 @@ const nodemailer = require('nodemailer');
 const mongoose   = require('mongoose');
 const helmet     = require('helmet');
 const rateLimit  = require('express-rate-limit');
+const bcrypt     = require('bcryptjs');
+const jwt        = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
 
 const app  = express();
 const PORT = 3000;
@@ -25,26 +29,95 @@ function connectMongo() {
 }
 connectMongo();
 
-/* ── Admin auth ── */
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
-if (!ADMIN_TOKEN) {
-  console.warn('⚠  ADMIN_TOKEN not set — admin endpoints will reject all requests');
+/* ── Seed superadmin on first run ── */
+async function seedSuperAdmin() {
+  try {
+    const SA_EMAIL    = process.env.SA_EMAIL    || 'admin@system.local';
+    const SA_PASSWORD = process.env.SA_PASSWORD || 'Admin1234!';
+    const existing = await User.findOne({ role: 'superadmin' });
+    if (!existing) {
+      const passwordHash = await bcrypt.hash(SA_PASSWORD, 12);
+      await User.create({
+        id: 'superadmin',
+        tenantId: '__system__',
+        email: SA_EMAIL,
+        passwordHash,
+        role: 'superadmin',
+        name: 'Super Admin',
+        createdAt: new Date().toISOString(),
+      });
+      console.log(`✓  Superadmin seeded: ${SA_EMAIL} / ${SA_PASSWORD}`);
+    }
+  } catch (e) { console.error('seed error:', e.message); }
 }
-// Middleware: protect all admin endpoints
-function requireAdmin(req, res, next) {
-  if (!ADMIN_TOKEN) return res.status(401).json({ ok: false, error: 'Unauthorized' });
-  const header = req.headers['x-admin-token'] || '';
-  if (header.length === 0) return res.status(401).json({ ok: false, error: 'Unauthorized' });
-  const provided = Buffer.from(header.padEnd(ADMIN_TOKEN.length));
-  const expected  = Buffer.from(ADMIN_TOKEN);
-  if (provided.length !== expected.length ||
-      !crypto.timingSafeEqual(provided, expected)) {
-    return res.status(401).json({ ok: false, error: 'Unauthorized' });
+mongoose.connection.once('open', seedSuperAdmin);
+
+/* ── Admin auth (legacy token — kept for backward-compat during migration) ── */
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+
+/* ── JWT auth middleware ── */
+function requireAuth(req, res, next) {
+  const auth = req.headers['authorization'] || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : req.cookies?.token || '';
+  if (!token) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ ok: false, error: 'Token invalid or expired' });
   }
-  next();
+}
+
+function requireSuperAdmin(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'superadmin') return res.status(403).json({ ok: false, error: 'Forbidden' });
+    next();
+  });
+}
+
+function requireAdmin(req, res, next) {
+  // Accept JWT (new) or legacy x-admin-token (old admin.html)
+  const auth = req.headers['authorization'] || '';
+  const jwtToken = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (jwtToken) {
+    try {
+      req.user = jwt.verify(jwtToken, JWT_SECRET);
+      if (req.user.role === 'admin' || req.user.role === 'superadmin') return next();
+    } catch {}
+  }
+  // Legacy token fallback
+  if (ADMIN_TOKEN) {
+    const header = req.headers['x-admin-token'] || '';
+    if (header.length > 0) {
+      const provided = Buffer.from(header.padEnd(ADMIN_TOKEN.length));
+      const expected  = Buffer.from(ADMIN_TOKEN);
+      if (provided.length === expected.length && crypto.timingSafeEqual(provided, expected)) {
+        req.user = { role: 'admin', tenantId: 'default' };
+        return next();
+      }
+    }
+  }
+  res.status(401).json({ ok: false, error: 'Unauthorized' });
 }
 
 /* ── Schemas ── */
+const TenantSchema = new mongoose.Schema({
+  id:        { type: String, required: true, unique: true },
+  name:      { type: String, required: true },
+  active:    { type: Boolean, default: true },
+  createdAt: { type: String },
+}, { strict: true });
+
+const UserSchema = new mongoose.Schema({
+  id:           { type: String, required: true, unique: true },
+  tenantId:     { type: String, required: true, index: true },
+  email:        { type: String, required: true, unique: true },
+  passwordHash: { type: String, required: true },
+  role:         { type: String, enum: ['superadmin', 'admin'], default: 'admin' },
+  name:         { type: String, default: '' },
+  createdAt:    { type: String },
+}, { strict: true });
+
 const ContentSchema = new mongoose.Schema({ _id: String, data: mongoose.Schema.Types.Mixed });
 const FormSchema = new mongoose.Schema({
   id:          { type: String, required: true, unique: true },
@@ -60,9 +133,10 @@ const SubmissionSchema = new mongoose.Schema({
   submittedAt:         { type: String },
   answers:             { type: mongoose.Schema.Types.Mixed, default: {} },
   linkedLeadId:        { type: String, index: true },   // set on form submissions sent via lead link
-  linkSentAt:          { type: String },                // set when admin sends a form link to this lead
+  linkSentAt:          { type: String },
   linkSentFormId:      { type: String },
-  responseReceivedAt:  { type: String },                // set when linked form is submitted
+  responseReceivedAt:  { type: String },
+  subStatus:           { type: String, default: 'נשלח' },
 });
 
 const SubSessionSchema = new mongoose.Schema({
@@ -75,9 +149,19 @@ const SubSessionSchema = new mongoose.Schema({
   createdAt:   { type: String },
 }, { strict: true });
 
+const PrefillSchema = new mongoose.Schema({
+  token:     { type: String, required: true, unique: true, index: true },
+  answers:   { type: mongoose.Schema.Types.Mixed, default: {} },
+  leadId:    { type: String },
+  createdAt: { type: Date, default: Date.now, expires: 7 * 24 * 3600 },
+});
+
+const Tenant     = mongoose.model('Tenant',     TenantSchema);
+const User       = mongoose.model('User',       UserSchema);
 const Content    = mongoose.model('Content',    ContentSchema);
 const Form       = mongoose.model('Form',       FormSchema);
 const Submission = mongoose.model('Submission', SubmissionSchema);
+const Prefill    = mongoose.model('Prefill',    PrefillSchema);
 const SubSession = mongoose.model('SubSession', SubSessionSchema);
 
 /* ── helpers ── */
@@ -106,15 +190,11 @@ const upload = multer({
   }
 });
 
-/* multer for form file-upload questions */
+/* multer for form file-upload questions — memory storage (works in serverless) */
 const ALLOWED_FORM_MIMES = ['application/pdf','image/png','image/jpeg','application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-const formFileStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename:    (req, file, cb) => cb(null, `formfile_${Date.now()}_${file.originalname.replace(/[^a-zA-Z0-9._-]/g,'_')}`)
-});
 const formFileUpload = multer({
-  storage: formFileStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 4 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (ALLOWED_FORM_MIMES.includes(file.mimetype)) cb(null, true);
@@ -127,11 +207,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc:     ["'self'", "'unsafe-inline'"],   // inline scripts in form template
-      scriptSrcAttr: ["'unsafe-inline'"],             // allow onclick/oninput in admin UI
-      styleSrc:   ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc:     ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc:   ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.tailwindcss.com"],
       fontSrc:    ["'self'", "https://fonts.gstatic.com"],
-      imgSrc:     ["'self'", "data:", "blob:"],
+      imgSrc:     ["'self'", "data:", "blob:", "https://lh3.googleusercontent.com", "https://images.unsplash.com"],
       connectSrc: ["'self'"],
     }
   },
@@ -146,6 +226,7 @@ const publicSubmitLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1',
   message: { ok: false, error: 'Too many requests — please try again later' }
 });
 const adminLimiter = rateLimit({
@@ -158,14 +239,153 @@ const adminLimiter = rateLimit({
 /* ── Static files: serve ONLY the two HTML pages + uploads ──
    FIX (Critical #1): remove express.static(__dirname) which exposed
    .env, email-config.json, server.js, package.json, etc.         ── */
-app.get('/',           (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get('/',              (req, res) => res.sendFile(path.join(__dirname, 'landing2.html')));
+app.get('/admin.html',    (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get('/super-admin',   (req, res) => res.sendFile(path.join(__dirname, 'super-admin.html')));
 // Serve uploaded files; dotfiles are denied by default in serve-static
 app.use('/uploads', express.static(UPLOADS_DIR, { dotfiles: 'deny' }));
 
 /* Explicitly block direct access to sensitive files */
 const SENSITIVE = /\.(env|json|js|log|md|gitignore|lock)$/i;
 app.get(SENSITIVE, (req, res) => res.status(403).end());
+
+/* ═══════════════════ AUTH API ═══════════════════ */
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
+
+/* POST /api/auth/login */
+app.post('/api/auth/login', authLimiter, async (req, res) => {
+  try {
+    connectMongo();
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ ok: false, error: 'חסרים פרטים' });
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).lean();
+    if (!user) return res.status(401).json({ ok: false, error: 'אימייל או סיסמה שגויים' });
+    const match = await bcrypt.compare(password, user.passwordHash);
+    if (!match) return res.status(401).json({ ok: false, error: 'אימייל או סיסמה שגויים' });
+    const tenant = user.role !== 'superadmin'
+      ? await Tenant.findOne({ id: user.tenantId }).lean()
+      : null;
+    if (user.role !== 'superadmin' && (!tenant || !tenant.active))
+      return res.status(403).json({ ok: false, error: 'החשבון אינו פעיל' });
+    const token = jwt.sign(
+      { userId: user.id, tenantId: user.tenantId, role: user.role, name: user.name },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    res.json({ ok: true, token, role: user.role, name: user.name, tenantId: user.tenantId });
+  } catch (e) { console.error('[auth/login]', e.message); res.status(500).json({ ok: false, error: 'שגיאה פנימית' }); }
+});
+
+/* GET /api/auth/me */
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  res.json({ ok: true, user: req.user });
+});
+
+/* ═══════════════════ SUPER-ADMIN API ═══════════════════ */
+
+/* GET /api/sa/tenants */
+app.get('/api/sa/tenants', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const tenants = await Tenant.find({}, { _id: 0, __v: 0 }).lean();
+    // attach user count per tenant
+    const counts = await User.aggregate([
+      { $group: { _id: '$tenantId', count: { $sum: 1 } } }
+    ]);
+    const countMap = {};
+    counts.forEach(c => { countMap[c._id] = c.count; });
+    res.json({ ok: true, tenants: tenants.map(t => ({ ...t, userCount: countMap[t.id] || 0 })) });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* POST /api/sa/tenants */
+app.post('/api/sa/tenants', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || name.trim().length < 2) return res.status(400).json({ ok: false, error: 'שם חסר' });
+    const tenant = { id: genId(), name: name.trim(), active: true, createdAt: new Date().toISOString() };
+    await Tenant.create(tenant);
+    res.json({ ok: true, tenant });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* PATCH /api/sa/tenants/:id */
+app.patch('/api/sa/tenants/:id', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const { name, active } = req.body;
+    const update = {};
+    if (typeof name === 'string') update.name = name.trim();
+    if (typeof active === 'boolean') update.active = active;
+    const t = await Tenant.findOneAndUpdate({ id: req.params.id }, { $set: update }, { new: true, lean: true });
+    if (!t) return res.status(404).json({ ok: false, error: 'לא נמצא' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* DELETE /api/sa/tenants/:id */
+app.delete('/api/sa/tenants/:id', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    await Tenant.deleteOne({ id: req.params.id });
+    await User.deleteMany({ tenantId: req.params.id });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* GET /api/sa/users */
+app.get('/api/sa/users', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const users = await User.find({}, { _id: 0, __v: 0, passwordHash: 0 }).lean();
+    res.json({ ok: true, users });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* POST /api/sa/users */
+app.post('/api/sa/users', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const { tenantId, email, password, name, role } = req.body;
+    if (!tenantId || !email || !password)
+      return res.status(400).json({ ok: false, error: 'חסרים שדות חובה' });
+    if (password.length < 8) return res.status(400).json({ ok: false, error: 'סיסמה קצרה מדי (מינימום 8 תווים)' });
+    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existing) return res.status(409).json({ ok: false, error: 'אימייל כבר קיים' });
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = {
+      id: genId() + genId(),
+      tenantId,
+      email: email.toLowerCase().trim(),
+      passwordHash,
+      name: name || '',
+      role: role === 'superadmin' ? 'superadmin' : 'admin',
+      createdAt: new Date().toISOString(),
+    };
+    await User.create(user);
+    const { passwordHash: _, ...safe } = user;
+    res.json({ ok: true, user: safe });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* PATCH /api/sa/users/:id — update password or name */
+app.patch('/api/sa/users/:id', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const { name, password, active } = req.body;
+    const update = {};
+    if (typeof name === 'string') update.name = name.trim();
+    if (typeof password === 'string' && password.length >= 8)
+      update.passwordHash = await bcrypt.hash(password, 12);
+    const u = await User.findOneAndUpdate({ id: req.params.id }, { $set: update }, { new: true, lean: true });
+    if (!u) return res.status(404).json({ ok: false, error: 'לא נמצא' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* DELETE /api/sa/users/:id */
+app.delete('/api/sa/users/:id', adminLimiter, requireSuperAdmin, async (req, res) => {
+  try {
+    const result = await User.deleteOne({ id: req.params.id });
+    if (!result.deletedCount) return res.status(404).json({ ok: false, error: 'לא נמצא' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
 
 /* ═══════════════════ CONTENT API ═══════════════════ */
 
@@ -205,9 +425,29 @@ app.post('/api/upload', adminLimiter, requireAdmin, upload.single('photo'), (req
   res.json({ ok: true, url: `/uploads/${req.file.filename}` });
 });
 
-app.post('/api/form-upload', publicSubmitLimiter, formFileUpload.single('file'), (req, res) => {
+app.post('/api/form-upload', publicSubmitLimiter, formFileUpload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ ok: false, error: 'no file' });
-  res.json({ ok: true, url: `/uploads/${req.file.filename}`, name: req.file.originalname });
+  try {
+    const fileId = genId() + genId();
+    await Content.findByIdAndUpdate(
+      'file_' + fileId,
+      { data: { buf: req.file.buffer.toString('base64'), mime: req.file.mimetype, name: Buffer.from(req.file.originalname, 'latin1').toString('utf8') } },
+      { upsert: true }
+    );
+    res.json({ ok: true, url: `/api/files/${fileId}`, name: req.file.originalname });
+  } catch(e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+/* Serve uploaded files stored in MongoDB */
+app.get('/api/files/:id', async (req, res) => {
+  try {
+    const doc = await Content.findById('file_' + req.params.id).lean();
+    if (!doc || !doc.data || !doc.data.buf) return res.status(404).send('Not found');
+    const buf = Buffer.from(doc.data.buf, 'base64');
+    res.set('Content-Type', doc.data.mime || 'application/octet-stream');
+    res.set('Content-Disposition', `inline; filename="${encodeURIComponent(doc.data.name || 'file')}"`);
+    res.send(buf);
+  } catch(e) { res.status(500).send('Error'); }
 });
 
 /* ═══════════════════ FORMS API ═══════════════════ */
@@ -419,6 +659,41 @@ app.patch('/api/leads/:id/link-sent', adminLimiter, requireAdmin, async (req, re
   } catch (e) { console.error("[API]", e.message); res.status(500).json({ ok: false, error: "Internal server error" }); }
 });
 
+/* GET prefill answers by token — public */
+app.get('/api/prefill/:token', async (req, res) => {
+  try {
+    const doc = await Prefill.findOne({ token: req.params.token }).lean();
+    if (!doc) return res.status(404).json({ ok: false });
+    res.json({ ok: true, answers: doc.answers });
+  } catch (e) { res.status(500).json({ ok: false }); }
+});
+
+/* POST create prefill link from an existing submission */
+app.post('/api/leads/:leadId/prefill-link', adminLimiter, requireAdmin, async (req, res) => {
+  try {
+    const { submissionId } = req.body;
+    const sub = await Submission.findOne({ id: submissionId }).lean();
+    if (!sub) return res.status(404).json({ ok: false, error: 'submission not found' });
+    const token = genId() + genId();
+    await Prefill.create({ token, answers: sub.answers || {}, leadId: req.params.leadId });
+    const url = `/form/${sub.formId}?leadId=${req.params.leadId}&prefill=${token}`;
+    res.json({ ok: true, url });
+  } catch (e) { console.error('[prefill]', e.message); res.status(500).json({ ok: false, error: 'server error' }); }
+});
+
+/* PATCH submission status */
+const SUB_STATUSES = ['נשלח','ממתין לאישור','הוקפאה','נדחה','בוטל','אושר'];
+app.patch('/api/submissions/:id/status', adminLimiter, requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    console.log('[STATUS] id:', req.params.id, '| status:', status, '| valid:', SUB_STATUSES.includes(status));
+    if (!SUB_STATUSES.includes(status)) return res.status(400).json({ ok: false, error: 'invalid status: ' + status });
+    const result = await Submission.findOneAndUpdate({ id: req.params.id }, { $set: { subStatus: status } });
+    console.log('[STATUS] matched:', !!result);
+    res.json({ ok: true });
+  } catch (e) { console.error("[API]", e.message); res.status(500).json({ ok: false, error: "Internal server error" }); }
+});
+
 /* DELETE a single submission */
 app.delete('/api/leads/:id', adminLimiter, requireAdmin, async (req, res) => {
   try {
@@ -547,8 +822,8 @@ app.get('/form/:id', async (req, res) => {
     .page-dot.active{background:var(--gold);width:36px}
 
     /* ── page ── */
-    .page{max-width:640px;margin:0 auto;padding:40px 24px 80px}
-    .form-header{margin-bottom:40px;text-align:center}
+    .page{max-width:640px;margin:0 auto;padding:20px 24px 80px}
+    .form-header{margin-bottom:20px;text-align:center}
     .form-badge{display:inline-block;background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.4);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--dg);margin-bottom:16px}
     .form-title{font-family:'Fraunces','Frank Ruhl Libre',serif;font-size:clamp(24px,5vw,38px);font-weight:400;color:var(--ocean);margin-bottom:10px}
     .form-desc{font-size:15px;color:#5a6e7a;line-height:1.65}
@@ -609,6 +884,7 @@ app.get('/form/:id', async (req, res) => {
 
     /* ── page section title ── */
     .page-section-title{font-family:'Fraunces','Frank Ruhl Libre',serif;font-size:22px;font-weight:400;color:var(--ocean);margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid rgba(200,169,110,.25)}
+    .intro-header{font-family:'Fraunces','Frank Ruhl Libre',serif;font-size:28px;font-weight:600;color:var(--ocean);text-align:center;margin-bottom:24px;}
 
     /* ── branch hint ── */
     .branch-hint{font-size:12px;color:rgba(200,169,110,.8);margin-top:12px;display:flex;align-items:center;gap:5px}
@@ -641,14 +917,32 @@ app.get('/form/:id', async (req, res) => {
     /* ── validation shake ── */
     @keyframes shake{0%,100%{transform:none}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
     .shake{animation:shake .35s ease}
+
+    /* ── process tree (horizontal, above form) ── */
+    .process-tree{display:none;max-width:640px;margin:0 auto 18px;direction:rtl;font-family:'Heebo',sans-serif}
+    .pt-row{display:flex;align-items:flex-start;gap:0;position:relative}
+    .pt-group{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+    .pt-connector{position:absolute;top:11px;left:50%;right:-50%;height:2px;background:rgba(28,58,74,.12);z-index:0;transition:background .3s}
+    .pt-group:first-child .pt-connector{display:none}
+    .pt-group--done .pt-connector{background:rgba(200,169,110,.5)}
+    .pt-group-top{display:flex;flex-direction:column;align-items:center;gap:5px;z-index:1;width:100%}
+    .pt-group-num{width:22px;height:22px;border-radius:50%;background:rgba(28,58,74,.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(28,58,74,.35);transition:background .3s,color .3s;position:relative;z-index:1}
+    .pt-group--active .pt-group-num{background:var(--ocean);color:#fff}
+    .pt-group--done .pt-group-num{background:var(--gold);color:#fff}
+    .pt-group-label{font-size:11px;font-weight:700;color:rgba(28,58,74,.35);text-align:center;transition:color .3s;white-space:nowrap}
+    .pt-group--active .pt-group-label,.pt-group--done .pt-group-label{color:var(--ocean)}
+    .pt-steps{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:6px;width:100%}
+    .pt-step{font-size:11px;color:#b0bec5;padding:3px 8px;border-radius:5px;text-align:center;transition:all .2s;white-space:nowrap}
+    .pt-step--active{color:var(--ocean);font-weight:700;background:rgba(200,169,110,.12)}
+    .pt-step--done{color:#7a9aaa}
   </style>
 </head>
 <body>
   <nav class="nav">
     <a href="/" class="nav-logo">${esc(logoText)} <span>${esc(logoAccent)}</span></a>
-    <div style="font-size:13px;color:#8a9ba5;" id="navStepLabel"></div>
+    <div style="display:none" id="navStepLabel"></div>
   </nav>
-  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="progress-wrap" style="display:none"><div class="progress-bar" id="progressBar"></div></div>
 
   <div class="page">
     <div class="form-header">
@@ -657,6 +951,7 @@ app.get('/form/:id', async (req, res) => {
       ${form.description ? `<p class="form-desc">${esc(form.description)}</p>` : ''}
     </div>
     <div class="page-dots" id="pageDots"></div>
+    <div id="processTree" class="process-tree"></div>
     <div id="wizardWrap"></div>
     <div id="reviewScreen" class="review-screen"></div>
 
@@ -666,7 +961,15 @@ app.get('/form/:id', async (req, res) => {
       <p class="success-sub">תודה רבה על פנייתך.<br>ניצור איתך קשר בהקדם האפשרי.</p>
       <button onclick="window.location.href=window.location.pathname" style="margin-top:28px;background:transparent;border:2px solid var(--gold);color:var(--ocean);padding:10px 28px;border-radius:8px;font-family:'Heebo',sans-serif;font-size:15px;font-weight:600;cursor:pointer;">← שלח פנייה נוספת</button>
     </div>
-    <div class="form-id-note">מזהה טופס: ${form.id}</div>
+    <div class="form-id-note" style="display:none">מזהה טופס: ${form.id}
+
+    <!-- ██ DEV-SKIP-BUTTON — remove entire block on request ██ -->
+    <div id="devSkipBtn" style="position:fixed;bottom:20px;left:20px;z-index:9999;">
+      <button onclick="devSkipToLoanType()" style="background:#e53935;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);">
+        ⚡ דלג לסוג הלוואה
+      </button>
+    </div>
+    <!-- ██ END DEV-SKIP-BUTTON ██ --></div>
   </div>
 
 <script>
@@ -675,7 +978,8 @@ var ALL_QS  = ${questionsJson}; // flat list (no page_breaks)
 var FORM_ID = '${form.id}';
 // PAGE_CONDITIONS[i] = { qId, vals } — skip page i if answers[qId] not in vals
 var PAGE_CONDITIONS = PAGES.map(p => p.showCondition || null);
-const LEAD_ID = new URLSearchParams(window.location.search).get('leadId') || '';
+const LEAD_ID      = new URLSearchParams(window.location.search).get('leadId') || '';
+const PREFILL_TOKEN = new URLSearchParams(window.location.search).get('prefill') || '';
 const answers = {};
 
 // index all questions by id
@@ -685,6 +989,122 @@ ALL_QS.forEach(q => qById[q.id] = q);
 // page history for back navigation
 let pageHistory = [0];  // stack of page indices visited
 let currentPage = 0;    // index in PAGES[]
+
+/* ██ DEV-SKIP-BUTTON — remove entire block on request ██ */
+function devSkipToLoanType() {
+  var idx = PAGES.findIndex(function(p) {
+    return p.questions.some(function(q) { return q.id === 'loan_type'; });
+  });
+  if (idx < 0) { alert('עמוד loan_type לא נמצא'); return; }
+  pageHistory = [idx];
+  renderPage(idx);
+}
+/* ██ END DEV-SKIP-BUTTON ██ */
+
+/* ═══ PROCESS TREE ═══ */
+function classifyPageStep(pageIdx) {
+  var page = PAGES[pageIdx];
+  if (!page) return null;
+  if (pageIdx === 0) return null; // intro page
+  var title = page.title || '';
+  var qIds  = page.questions.map(function(q) { return q.id; });
+
+  // loan_type page marks the start of the "property" group
+  var loanTypeIdx = PAGES.findIndex(function(p) {
+    return p.questions && p.questions.some(function(q) { return q.id === 'loan_type'; });
+  });
+
+  if (loanTypeIdx >= 0 && pageIdx >= loanTypeIdx) {
+    if (qIds.indexOf('loan_type') >= 0)                          return { main: 'property', sub: 'loan_type' };
+    var propPat  = ['פרטי הנכס', 'הנכס הקיים', 'הנכס החדש'];
+    var dealPat  = ['פרטי העסקה', 'מכירת הנכס', 'סוג המחזור', 'פרטי המשכנתא', 'פרטי ההגדלה', 'פרטי ההשקעה', 'נתוני המשכנתא', 'זכאות'];
+    var equityPat= ['הון עצמי', 'גורמים מלווים'];
+    if (propPat.some(function(k){ return title.indexOf(k)>=0; })) return { main: 'property', sub: 'loan_type' };
+    if (equityPat.some(function(k){ return title.indexOf(k)>=0; })) return { main: 'property', sub: 'equity' };
+    if (title.indexOf('מסמכים') >= 0)                            return { main: 'property', sub: 'equity' };
+    if (dealPat.some(function(k){ return title.indexOf(k)>=0; })) return { main: 'property', sub: 'deal' };
+    return { main: 'property', sub: 'deal' };
+  }
+
+  // Before loan_type → borrowers
+  if (title.indexOf('ערב') >= 0) return { main: 'borrowers', sub: 'guarantor' };
+  var liabPat = ['הלוואות', 'הלוואה', 'משכנתאות', 'משכנתא', 'עיקולים', 'מסמכים והצהרה'];
+  if (liabPat.some(function(k){ return title.indexOf(k)>=0; })) return { main: 'borrowers', sub: 'liabilities' };
+  return { main: 'borrowers', sub: 'personal' };
+}
+
+function renderProcessTree(pageIdx) {
+  var tree = document.getElementById('processTree');
+  if (!tree) return;
+  if (pageIdx === 0) {
+    tree.style.display = 'none';
+    return;
+  }
+
+  var cur = classifyPageStep(pageIdx);
+  if (!cur) { tree.style.display = 'none'; return; }
+
+  var showGuarantor = answers['q_guar_exists'] === 'כן';
+
+  function getStepState(groupId, stepId) {
+    var foundActive = false, foundDone = false;
+    for (var i = 0; i < PAGES.length; i++) {
+      var c = classifyPageStep(i);
+      if (!c || c.main !== groupId || c.sub !== stepId) continue;
+      if (i === pageIdx) foundActive = true;
+      else if (i < pageIdx) foundDone = true;
+    }
+    if (foundActive) return 'active';
+    if (foundDone)   return 'done';
+    return 'upcoming';
+  }
+
+  var groups = [
+    {
+      id: 'borrowers', label: 'פרטי הלווים', num: '01',
+      steps: [
+        { id: 'personal',    label: 'פרטים אישיים' },
+        { id: 'guarantor',   label: 'פרטי ערב', hidden: !showGuarantor },
+        { id: 'liabilities', label: 'התחייבויות' },
+      ]
+    },
+    {
+      id: 'property', label: 'פרטי הנכס', num: '02',
+      steps: [
+        { id: 'loan_type', label: 'סוג הנכס' },
+        { id: 'deal',      label: 'פרטי העסקה' },
+        { id: 'equity',    label: 'הון עצמי ומימון' },
+      ]
+    }
+  ];
+
+  var html = '<div class="pt-row">';
+  groups.forEach(function(group, gi) {
+    var isActive = cur.main === group.id;
+    var isDone   = (group.id === 'borrowers' && cur.main === 'property');
+    var cls = 'pt-group' + (isActive ? ' pt-group--active' : '') + (isDone ? ' pt-group--done' : '');
+    html += '<div class="' + cls + '">';
+    html += '<div class="pt-connector"></div>';
+    html += '<div class="pt-group-top">';
+    html += '<div class="pt-group-num">' + (isDone ? '✓' : group.num) + '</div>';
+    html += '<div class="pt-group-label">' + group.label + '</div>';
+    html += '</div>';
+    html += '<div class="pt-steps">';
+    group.steps.forEach(function(step) {
+      if (step.hidden) return;
+      var st = getStepState(group.id, step.id);
+      var sc = 'pt-step' + (st === 'active' ? ' pt-step--active' : st === 'done' ? ' pt-step--done' : '');
+      html += '<div class="' + sc + '">' + step.label + '</div>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  tree.innerHTML = html;
+  tree.style.display = 'block';
+  var dots = document.getElementById('pageDots');
+  if (dots) dots.style.display = 'none';
+}
 
 /* ═══ INIT ═══ */
 function start() {
@@ -699,14 +1119,33 @@ function start() {
     if (!PAGES.length) { document.getElementById('wizardWrap').innerHTML = '<p style="text-align:center;padding:60px;font-family:Heebo,sans-serif">הטופס כבר מולא. תודה!</p>'; return; }
   }
 
-  renderDots();
-  renderPage(0);
+  if (PREFILL_TOKEN) {
+    fetch('/api/prefill/' + PREFILL_TOKEN)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.ok && d.answers) Object.assign(answers, d.answers);
+      })
+      .catch(function() {})
+      .finally(function() {
+        var loanPage = PAGES.findIndex(function(p) {
+          return p.questions.some(function(q) { return q.id === 'loan_type'; });
+        });
+        var startPage = loanPage >= 0 ? loanPage : 0;
+        pageHistory = [startPage];
+        renderDots();
+        renderPage(startPage);
+      });
+  } else {
+    renderDots();
+    renderPage(0);
+  }
 }
 
 /* ═══ DOTS ═══ */
 function renderDots() {
   const wrap = document.getElementById('pageDots');
   if (PAGES.length <= 1) { wrap.style.display='none'; return; }
+  wrap.style.display = 'none'; // hidden by default; shown only on page 0 via renderProcessTree
   wrap.innerHTML = PAGES.map((_, i) =>
     \`<div class="page-dot \${i===currentPage?'active':i<currentPage?'done':''}" id="dot-\${i}"></div>\`
   ).join('');
@@ -810,13 +1249,38 @@ function renderPage(pageIdx, direction) {
   const isLast = pageIdx === PAGES.length - 1;
   const wrap  = document.getElementById('wizardWrap');
 
+  // count only pages whose showCondition is currently satisfied (or null)
+  function visiblePages() {
+    return PAGES.reduce(function(acc, _, i) {
+      var cond = PAGE_CONDITIONS[i];
+      if (!cond) return acc + 1;
+      var saved = answers['q_' + cond.qId];
+      var val   = Array.isArray(saved) ? saved[0] : saved;
+      return cond.vals.includes(val) ? acc + 1 : acc;
+    }, 0);
+  }
+  function visiblePageNum(idx) {
+    var n = 0;
+    for (var i = 0; i <= idx; i++) {
+      var cond = PAGE_CONDITIONS[i];
+      if (!cond) { n++; continue; }
+      var saved = answers['q_' + cond.qId];
+      var val   = Array.isArray(saved) ? saved[0] : saved;
+      if (cond.vals.includes(val)) n++;
+    }
+    return n;
+  }
+  var vTotal = visiblePages();
+  var vNum   = visiblePageNum(pageIdx);
+
   // progress bar
   document.getElementById('progressBar').style.width =
-    Math.round(((pageIdx + (isLast?1:0)) / PAGES.length) * 100) + '%';
+    Math.round((vNum / vTotal) * 100) + '%';
   document.getElementById('navStepLabel').textContent =
-    PAGES.length > 1 ? \`עמוד \${pageIdx+1} מתוך \${PAGES.length}\` : '';
+    vTotal > 1 ? \`עמוד \${vNum} מתוך \${vTotal}\` : '';
 
   updateDots();
+  renderProcessTree(pageIdx);
 
   // compute internal branch targets for this page
   const internalTargets = getPageInternalTargets(qs);
@@ -910,10 +1374,12 @@ function renderPage(pageIdx, direction) {
 
   const resolvedTitle = resolvePageTitle(page.title || '');
   const pageTitle = resolvedTitle ? \`<div class="page-section-title">\${esc(resolvedTitle)}</div>\` : '';
+  const introHeader = pageIdx === 0 ? \`<div class="intro-header">רגע לפני שמתחילים</div>\` : '';
   const canBack   = pageHistory.length > 1;
 
   wrap.innerHTML = \`
     <div class="wizard-step active\${direction==='back'?' back':''}">
+      \${introHeader}
       \${pageTitle}
       \${questionsHtml}
       <div class="step-nav">
@@ -1285,11 +1751,9 @@ async function submitAllPages() {
       });
       var d = await r.json();
       if (!d.ok) throw new Error(d.error);
-      document.getElementById('wizardWrap').style.display = 'none';
-      document.getElementById('successScreen').style.display = 'block';
       var titleEl = document.getElementById('successScreen').querySelector('.success-title');
       if (titleEl) titleEl.textContent = 'תודה! הנתונים נשלחו בהצלחה.';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showSuccess();
     } catch(e) {
       if (btn) { btn.disabled = false; btn.textContent = 'שלח טופס ✓'; }
       alert('אירעה שגיאה. נסה שוב.');
@@ -1572,7 +2036,7 @@ app.post('/api/email-config', adminLimiter, requireAdmin, express.json(), (req, 
 /* POST send lead email */
 app.post('/api/send-lead', adminLimiter, requireAdmin, express.json(), async (req, res) => {
   try {
-    const { to, formTitle, submittedAt, fields } = req.body;
+    const { to, formTitle, submittedAt, fields, attachments } = req.body;
     if (!to || !to.length) return res.status(400).json({ error: 'חסרות כתובות מייל' });
 
     const cfg = getEmailCfg();
@@ -1618,11 +2082,23 @@ app.post('/api/send-lead', adminLimiter, requireAdmin, express.json(), async (re
         </div>
       </div>`;
 
+    // Build file attachments
+    const mailAttachments = [];
+    for (const a of (attachments || [])) {
+      if (!a.url || !a.name) continue;
+      // url is like /uploads/filename or a full path
+      const filePath = path.join(__dirname, a.url.startsWith('/') ? a.url.slice(1) : a.url);
+      if (require('fs').existsSync(filePath)) {
+        mailAttachments.push({ filename: a.name, path: filePath });
+      }
+    }
+
     await transporter.sendMail({
       from: `"${cfg.fromName || 'מערכת לירון'}" <${cfg.user}>`,
       to: to.join(', '),
       subject: `ליד חדש — ${formTitle}`,
-      html
+      html,
+      attachments: mailAttachments
     });
 
     res.json({ ok: true });
