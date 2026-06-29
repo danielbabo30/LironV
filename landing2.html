@@ -99,6 +99,49 @@ tailwind.config = {
     50%  { transform: translateY(-10px); }
     100% { transform: translateY(0); }
   }
+
+  /* ── Mobile hero ── */
+  @media (max-width: 640px) {
+    #hero-section {
+      min-height: unset !important;
+      display: flex;
+      flex-direction: column;
+    }
+    #lp-hero-img {
+      position: relative !important;
+      inset: unset !important;
+      width: 100% !important;
+      height: 260px !important;
+      object-fit: cover !important;
+      object-position: center top !important;
+    }
+    #hero-text-block {
+      position: relative !important;
+      min-height: unset !important;
+      justify-content: center !important;
+      padding: 28px 20px !important;
+      background: #f9f7f3;
+    }
+    #hero-text-inner {
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+    #hero-text-inner h1 {
+      font-size: 26px !important;
+    }
+    #hero-text-inner p {
+      font-size: 14px !important;
+    }
+    #hero-badge-top  { display: none !important; }
+    #hero-badge-bottom {
+      position: relative !important;
+      bottom: unset !important;
+      left: unset !important;
+      margin: 0 20px 16px !important;
+      display: inline-flex !important;
+      animation: none !important;
+    }
+  }
 </style>
 </head>
 <body class="bg-background text-on-surface overflow-x-hidden">
@@ -123,7 +166,7 @@ tailwind.config = {
 <main class="mt-20">
 
   <!-- Hero -->
-  <section style="position:relative; min-height:500px; overflow:hidden;">
+  <section id="hero-section" style="position:relative; min-height:500px; overflow:hidden;">
 
     <!-- Full-bleed photo — family pushed to right side -->
     <img id="lp-hero-img" src="/public/hero-bg.png"
@@ -132,13 +175,13 @@ tailwind.config = {
 
 
     <!-- Badge top-LEFT (over family) -->
-    <div style="position:absolute;top:22px;left:24px;background:rgba(255,255,255,0.93);border-radius:14px;padding:9px 16px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);z-index:2;">
+    <div id="hero-badge-top" style="position:absolute;top:22px;left:24px;background:rgba(255,255,255,0.93);border-radius:14px;padding:9px 16px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);z-index:2;">
       <div id="lp-badge1-text" style="font-weight:700;color:#1a2e4a;font-size:13px;">מעל 5,000</div>
       <div id="lp-badge1-sub" style="color:#777;font-size:11px;">לקוחות מרוצים</div>
     </div>
 
     <!-- Badge bottom-LEFT (over family, floating) -->
-    <div style="position:absolute;bottom:22px;left:24px;background:rgba(255,255,255,0.93);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:2;animation:floatUp 3s ease-in-out infinite;">
+    <div id="hero-badge-bottom" style="position:absolute;bottom:22px;left:24px;background:rgba(255,255,255,0.93);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:2;animation:floatUp 3s ease-in-out infinite;">
       <div style="width:36px;height:36px;border-radius:50%;background:#E8D9A0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <span class="material-symbols-outlined" style="color:#1a2e4a;font-size:19px;font-variation-settings:'FILL' 1;">verified</span>
       </div>
@@ -149,8 +192,8 @@ tailwind.config = {
     </div>
 
     <!-- Text block on RIGHT side -->
-    <div style="position:relative;z-index:1;min-height:500px;display:flex;align-items:center;justify-content:flex-end;padding:0 0 0 5%;max-width:1200px;margin:0 auto;">
-      <div style="max-width:460px;text-align:right;padding:3rem 0;">
+    <div id="hero-text-block" style="position:relative;z-index:1;min-height:500px;display:flex;align-items:center;justify-content:flex-end;padding:0 0 0 5%;max-width:1200px;margin:0 auto;">
+      <div id="hero-text-inner" style="max-width:460px;text-align:right;padding:3rem 0;">
         <p id="lp-hero-pretitle" style="color:#1a2e4a;font-weight:700;font-size:16px;margin-bottom:10px;">הבית שלכם מתחיל כאן:</p>
         <h1 style="font-family:'Rubik',sans-serif;font-size:clamp(30px,4vw,48px);font-weight:700;color:#1a2e4a;line-height:1.2;margin-bottom:16px;">
           <span id="lp-hero-title">יעוץ משכנתאות חכם</span><br/><span id="lp-hero-highlight" style="color:#C9A84C;">ומותאם אישית</span>
