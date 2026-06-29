@@ -244,6 +244,7 @@ app.get('/admin.html',    (req, res) => res.sendFile(path.join(__dirname, 'admin
 app.get('/super-admin',   (req, res) => res.sendFile(path.join(__dirname, 'super-admin.html')));
 // Serve uploaded files; dotfiles are denied by default in serve-static
 app.use('/uploads', express.static(UPLOADS_DIR, { dotfiles: 'deny' }));
+app.use('/public', express.static(path.join(__dirname, 'public'), { dotfiles: 'deny' }));
 
 /* Explicitly block direct access to sensitive files */
 const SENSITIVE = /\.(env|json|js|log|md|gitignore|lock)$/i;
